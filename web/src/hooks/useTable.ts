@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { message } from 'antd';
 import { DEFAULT_PAGE_SIZE } from '@/constants/config';
 
-interface UseTableOptions<T, P extends Record<string, unknown>> {
+interface UseTableOptions<T, P extends object> {
   /** 请求函数，接收查询参数，返回分页数据 */
   fetchFn: (params: P & { page: number; pageSize: number }) => Promise<{
     data: { items: T[]; total: number; page: number; pageSize: number; totalPages: number };
@@ -16,7 +16,7 @@ interface UseTableOptions<T, P extends Record<string, unknown>> {
   immediate?: boolean;
 }
 
-interface UseTableReturn<T, P extends Record<string, unknown>> {
+interface UseTableReturn<T, P extends object> {
   dataSource: T[];
   loading: boolean;
   total: number;
@@ -33,7 +33,7 @@ interface UseTableReturn<T, P extends Record<string, unknown>> {
   onReset: () => void;
 }
 
-export function useTable<T, P extends Record<string, unknown> = Record<string, unknown>>(
+export function useTable<T, P extends object = object>(
   options: UseTableOptions<T, P>,
 ): UseTableReturn<T, P> {
   const { fetchFn, defaultParams, immediate = true } = options;

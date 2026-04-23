@@ -15,6 +15,9 @@ import NotFound from '@/pages/exception/404';
 import Forbidden from '@/pages/exception/403';
 import ServerError from '@/pages/exception/500';
 
+import UserListPage from '@/pages/user/UserListPage';
+import UserDetailPage from '@/pages/user/UserDetailPage';
+
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
   <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(0,0,0,0.25)', fontSize: 16 }}>
@@ -40,7 +43,8 @@ export const routes: RouteObject[] = [
       { path: 'dashboard', element: <DashboardPage /> },
 
       /* ── 系统管理 ── */
-      { path: 'system/users', element: <ComingSoon /> },
+      { path: 'system/users', element: <UserListPage /> },
+      { path: 'system/users/:id', element: <UserDetailPage /> },
 
       /* ── 基础数据（预留） ── */
       { path: 'base/products', element: <ComingSoon /> },
