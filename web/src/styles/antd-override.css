@@ -1,0 +1,23 @@
+/* ========================================
+   Ant Design Style Overrides
+   ======================================== */
+
+/* 表格行间距优化 */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 600;
+}
+
+/* 卡片内表格去除多余边距 */
+.ant-card .ant-table-wrapper {
+  margin: 0 -1px;
+}
+
+/* 搜索表单在卡片内的间距 */
+.ant-card .ant-form {
+  margin-bottom: 0;
+}
+
+/* 面包屑间距 */
+.ant-breadcrumb {
+  margin-bottom: var(--spacing-md);
+}
