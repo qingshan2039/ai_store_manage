@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.user.mapper.SysUserMapper">
+
+    <!-- 分页查询用户列表 -->
+    <select id="selectUserPage" resultType="com.aistore.module.user.entity.SysUser">
+        SELECT
+            id, employee_no, username, name, nickname, avatar, gender,
+            phone_number, email, job_title, department_id,
+            hide_phone_number, hide_name, remark, status,
+            created_at, updated_at, created_by, updated_by
+        FROM sys_user
+        WHERE deleted = 0
+        <!-- 关键词搜索：同时模糊匹配 name、employee_no、phone_number -->
+        <if test="keyword != null and keyword != ''">
+            AND (
+                name LIKE CONCAT('%', #{keyword}, '%')
+                OR employee_no LIKE CONCAT('%', #{keyword}, '%')
+                OR phone_number LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <!-- 工号筛选（前缀匹配） -->
+        <if test="employeeNo != null and employeeNo != ''">
+            AND employee_no LIKE CONCAT(#{employeeNo}, '%')
+        </if>
+        <!-- 姓名筛选（模糊匹配） -->
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <!-- 手机号筛选（精确匹配） -->
+        <if test="phoneNumber != null and phoneNumber != ''">
+            AND phone_number = #{phoneNumber}
+        </if>
+        <!-- 状态筛选 -->
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <!-- 部门 ID 筛选 -->
+        <if test="departmentId != null">
+            AND department_id = #{departmentId}
+        </if>
+        <!-- 职位筛选（模糊匹配） -->
+        <if test="jobTitle != null and jobTitle != ''">
+            AND job_title LIKE CONCAT('%', #{jobTitle}, '%')
+        </if>
+        <!-- 性别筛选 -->
+        <if test="gender != null">
+            AND gender = #{gender}
+        </if>
+        <!-- 创建时间范围筛选 -->
+        <if test="createdAtStart != null">
+            AND created_at &gt;= #{createdAtStart}
+        </if>
+        <if test="createdAtEnd != null">
+            AND created_at &lt;= #{createdAtEnd}
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

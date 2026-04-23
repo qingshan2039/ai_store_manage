@@ -57,3 +57,8 @@ logs/
 *.bak
 *.tmp
 *.orig
+
+### Project Specific ###
+schema_design/
+plan/
+walkthrough/
