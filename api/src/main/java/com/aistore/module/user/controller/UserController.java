@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -81,18 +83,20 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<UserListResponse> listUsers(
-            String keyword,
-            String employeeNo,
-            String name,
-            String phoneNumber,
-            Integer status,
-            Long departmentId,
-            String jobTitle,
-            Integer gender,
-            LocalDateTime createdAtStart,
-            LocalDateTime createdAtEnd,
-            Integer page,
-            Integer pageSize) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String employeeNo,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String jobTitle,
+            @RequestParam(required = false) Integer gender,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdAtStart,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdAtEnd,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer pageSize) {
         log.info("GET /api/users - 查询用户列表: page={}, pageSize={}", page, pageSize);
 
         UserQueryParam param = UserQueryParam.builder()

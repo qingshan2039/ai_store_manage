@@ -8,7 +8,7 @@
         SELECT
             id, employee_no, username, name, nickname, avatar, gender,
             phone_number, email, job_title, department_id,
-            hide_phone_number, hide_name, remark, status,
+            hide_phone_number, hide_name, remark, status, deleted,
             created_at, updated_at, created_by, updated_by
         FROM sys_user
         WHERE deleted = 0
