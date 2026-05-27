@@ -64,3 +64,4 @@ plan/
 walkthrough/
 .agents/
 .m2-local/
+.codegraph/
