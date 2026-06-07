@@ -40,6 +40,7 @@ export const menuConfig: MenuItemConfig[] = [
     label: '基础数据',
     icon: React.createElement(DatabaseOutlined),
     children: [
+      { key: '/base/customers', label: '顾客管理' },
       { key: '/base/products', label: '商品管理' },
       { key: '/base/warehouses', label: '仓库管理' },
       { key: '/base/suppliers', label: '供应商管理' },

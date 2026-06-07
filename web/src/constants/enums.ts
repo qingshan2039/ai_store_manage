@@ -70,3 +70,14 @@ export const DEPARTMENT_TYPE_OPTIONS = [
   { label: '财务', value: 'FINANCE' },
   { label: '管理（管理层）', value: 'MANAGEMENT' },
 ];
+
+/** 顾客状态 */
+export const CUSTOMER_STATUS = {
+  DISABLED: 0,
+  ENABLED: 1,
+} as const;
+
+export const CUSTOMER_STATUS_OPTIONS = [
+  { label: '启用', value: CUSTOMER_STATUS.ENABLED },
+  { label: '禁用', value: CUSTOMER_STATUS.DISABLED },
+];

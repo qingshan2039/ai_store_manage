@@ -18,6 +18,7 @@ import ServerError from '@/pages/exception/500';
 import UserListPage from '@/pages/user/UserListPage';
 import UserDetailPage from '@/pages/user/UserDetailPage';
 import DepartmentListPage from '@/pages/department/DepartmentListPage';
+import CustomerListPage from '@/pages/customer/CustomerListPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -48,7 +49,8 @@ export const routes: RouteObject[] = [
       { path: 'system/users/:id', element: <UserDetailPage /> },
       { path: 'system/departments', element: <DepartmentListPage /> },
 
-      /* ── 基础数据（预留） ── */
+      /* ── 基础数据 ── */
+      { path: 'base/customers', element: <CustomerListPage /> },
       { path: 'base/products', element: <ComingSoon /> },
       { path: 'base/warehouses', element: <ComingSoon /> },
       { path: 'base/suppliers', element: <ComingSoon /> },
