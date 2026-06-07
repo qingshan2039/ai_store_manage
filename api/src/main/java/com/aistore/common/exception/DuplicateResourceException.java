@@ -23,4 +23,18 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateEmployeeNo() {
         return new DuplicateResourceException("DUPLICATE_EMPLOYEE_NO", "工号已存在");
     }
+
+    /**
+     * 快捷构造：部门名称已存在
+     */
+    public static DuplicateResourceException duplicateDepartmentName() {
+        return new DuplicateResourceException("DUPLICATE_DEPARTMENT_NAME", "部门名称已存在");
+    }
+
+    /**
+     * 快捷构造：部门编码已存在
+     */
+    public static DuplicateResourceException duplicateDepartmentCode() {
+        return new DuplicateResourceException("DUPLICATE_DEPARTMENT_CODE", "部门编码已存在");
+    }
 }

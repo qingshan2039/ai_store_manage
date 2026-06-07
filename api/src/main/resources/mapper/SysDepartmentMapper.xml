@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.department.mapper.SysDepartmentMapper">
+
+    <!-- 分页查询部门列表 -->
+    <select id="selectDepartmentPage" resultType="com.aistore.module.department.entity.SysDepartment">
+        SELECT
+            id, name, code, type, status, sort, remark, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM sys_department
+        WHERE deleted = 0
+        <!-- 关键词搜索：同时模糊匹配 name、code -->
+        <if test="keyword != null and keyword != ''">
+            AND (
+                name LIKE CONCAT('%', #{keyword}, '%')
+                OR code LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <!-- 类型筛选（精确匹配） -->
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        <!-- 状态筛选 -->
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sort ASC, id ASC
+    </select>
+
+</mapper>

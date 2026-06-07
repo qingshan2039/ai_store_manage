@@ -65,3 +65,58 @@ CREATE TABLE sys_user (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_general_ci
   COMMENT='系统用户表';
+
+-- ============================================================
+-- 表: sys_department
+-- 说明: 部门表，扁平结构，按类型（DepartmentType）分类
+-- ============================================================
+-- 确保中文按 utf8mb4 写入，避免客户端默认字符集导致种子数据乱码
+SET NAMES utf8mb4;
+
+DROP TABLE IF EXISTS sys_department;
+
+CREATE TABLE sys_department (
+    -- 基础字段
+    id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
+    name            VARCHAR(64)     NOT NULL                 COMMENT '部门名称',
+    code            VARCHAR(32)     NOT NULL                 COMMENT '部门编码（创建后不可修改）',
+    type            VARCHAR(32)     NOT NULL                 COMMENT '部门类型：WAREHOUSE/TRANSPORT/SALES/PRODUCTION/OFFICE/HR/FINANCE/MANAGEMENT',
+
+    -- 业务字段
+    status          TINYINT         NOT NULL DEFAULT 1       COMMENT '状态：0=禁用，1=启用',
+    sort            INT             NOT NULL DEFAULT 0       COMMENT '显示排序（升序，越小越靠前）',
+    remark          VARCHAR(500)    DEFAULT NULL             COMMENT '备注',
+
+    -- 审计字段
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP          COMMENT '创建时间',
+    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    created_by      BIGINT          DEFAULT NULL             COMMENT '创建人 ID',
+    updated_by      BIGINT          DEFAULT NULL             COMMENT '更新人 ID',
+    deleted         TINYINT(1)      NOT NULL DEFAULT 0       COMMENT '逻辑删除：0=未删除，1=已删除',
+
+    -- 主键
+    PRIMARY KEY (id),
+
+    -- 唯一索引（含 deleted，逻辑删除后允许复用 name / code）
+    UNIQUE INDEX uk_name_deleted (name, deleted),
+    UNIQUE INDEX uk_code_deleted (code, deleted),
+
+    -- 普通索引
+    INDEX idx_type (type),
+    INDEX idx_status (status)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci
+  COMMENT='部门表';
+
+-- 初始化部门数据（8 类：7 个业务部门 + 管理层）
+INSERT INTO sys_department (name, code, type, status, sort, remark) VALUES
+    ('仓储管理部', 'WH',    'WAREHOUSE',  1, 1, '负责仓库收发存管理'),
+    ('运输部',     'TRANS', 'TRANSPORT',  1, 2, '负责物流配送与运输'),
+    ('销售部',     'SALES', 'SALES',      1, 3, '负责销售与客户管理'),
+    ('生产部',     'PROD',  'PRODUCTION', 1, 4, '负责生产制造'),
+    ('行政办公室', 'OFFICE','OFFICE',     1, 5, '负责行政与综合办公'),
+    ('人事部',     'HR',    'HR',         1, 6, '负责人力资源管理'),
+    ('财务部',     'FIN',   'FINANCE',    1, 7, '负责财务与会计'),
+    ('管理层',     'MGMT',  'MANAGEMENT', 1, 8, '老板 / 高层管理');

@@ -112,6 +112,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理资源被占用异常（如部门下仍有用户）
+     * 返回 409
+     */
+    @ExceptionHandler(ResourceInUseException.class)
+    public ResponseEntity<ErrorResponse> handleResourceInUseException(ResourceInUseException ex) {
+        log.warn("资源被占用: code={}, message={}", ex.getCode(), ex.getMessage());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .code(ex.getCode())
+                .message(ex.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
      * 处理通用业务异常
      * 返回 400
      */

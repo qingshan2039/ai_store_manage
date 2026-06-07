@@ -15,4 +15,11 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException userNotFound() {
         return new ResourceNotFoundException("USER_NOT_FOUND", "用户不存在");
     }
+
+    /**
+     * 快捷构造：部门不存在
+     */
+    public static ResourceNotFoundException departmentNotFound() {
+        return new ResourceNotFoundException("DEPARTMENT_NOT_FOUND", "部门不存在");
+    }
 }
