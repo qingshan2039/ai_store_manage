@@ -145,3 +145,11 @@ export const LPN_STATUS_OPTIONS = [
   { label: '在途', value: 'IN_TRANSIT' },
   { label: '空置', value: 'EMPTY' },
 ];
+
+/** 库位类型（常用值，可按需扩展） */
+export const LOCATION_TYPE_OPTIONS = [
+  { label: '货架', value: '货架' },
+  { label: '地堆', value: '地堆' },
+  { label: '暂存', value: '暂存' },
+  { label: '月台', value: '月台' },
+];

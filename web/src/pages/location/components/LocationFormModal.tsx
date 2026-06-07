@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Select, Row, Col, message } from 'antd';
 import { locationApi } from '@/api/location';
-import { STATUS_OPTIONS } from '@/constants/enums';
+import { STATUS_OPTIONS, LOCATION_TYPE_OPTIONS } from '@/constants/enums';
 import type { Location, CreateLocationRequest, UpdateLocationRequest } from '@/types/location';
 import type { ModalMode } from '@/types/common';
 import type { Option } from '../LocationListPage';
@@ -34,7 +34,7 @@ const LocationFormModal: React.FC<Props> = ({ visible, mode, data, warehouseOpti
       const v = await form.validateFields();
       setLoading(true);
       if (isEdit && data) {
-        const d: UpdateLocationRequest = { zoneId: v.zoneId, locType: v.locType };
+        const d: UpdateLocationRequest = { code: v.code, zoneId: v.zoneId, locType: v.locType };
         await locationApi.update(data.id, d);
         message.success('更新成功');
       } else {
@@ -63,12 +63,14 @@ const LocationFormModal: React.FC<Props> = ({ visible, mode, data, warehouseOpti
         </Row>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="code" label="库位编码" rules={[{ required: !isEdit, message: '请输入库位编码' }, { pattern: /^[A-Za-z0-9-]+$/, message: '只能包含字母、数字和连字符' }]}>
-              <Input placeholder="如 A-01-01（创建后不可改）" disabled={isEdit} />
+            <Form.Item name="code" label="库位编码" rules={[{ required: true, message: '请输入库位编码' }, { pattern: /^[A-Za-z0-9-]+$/, message: '只能包含字母、数字和连字符' }]}>
+              <Input placeholder="如 A-01-01（仓库内唯一，可修改）" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="locType" label="库位类型"><Input placeholder="货架/地堆" /></Form.Item>
+            <Form.Item name="locType" label="库位类型">
+              <Select options={LOCATION_TYPE_OPTIONS} placeholder="请选择库位类型" allowClear />
+            </Form.Item>
           </Col>
         </Row>
         {!isEdit && (

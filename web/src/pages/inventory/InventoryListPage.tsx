@@ -9,6 +9,7 @@ import { inventoryApi } from '@/api/inventory';
 import { skuApi } from '@/api/sku';
 import { lpnApi } from '@/api/lpn';
 import { locationApi } from '@/api/location';
+import { zoneApi } from '@/api/zone';
 import { useTable } from '@/hooks/useTable';
 import { useModal } from '@/hooks/useModal';
 import type { InventorySummaryItem, InventoryQueryParams, Inventory } from '@/types/inventory';
@@ -26,6 +27,7 @@ const InventoryListPage: React.FC = () => {
   const [skuOptions, setSkuOptions] = useState<Option[]>([]);
   const [lpnOptions, setLpnOptions] = useState<Option[]>([]);
   const [locationOptions, setLocationOptions] = useState<Option[]>([]);
+  const [zoneOptions, setZoneOptions] = useState<Option[]>([]);
 
   const { dataSource, loading, total, page, pageSize, onPageChange, onSearch, onReset, refresh } =
     useTable<InventorySummaryItem, InventoryQueryParams>({ fetchFn: inventoryApi.list, defaultParams: { page: 1, pageSize: 20 } });
@@ -36,6 +38,7 @@ const InventoryListPage: React.FC = () => {
     skuApi.list({ page: 1, pageSize: 100, status: 1 }).then((res) => setSkuOptions(res.data.items.map((s) => ({ label: `${s.skuName}（${s.skuCode}）`, value: s.id })))).catch(() => {});
     lpnApi.list({ page: 1, pageSize: 100 }).then((res) => setLpnOptions(res.data.items.map((l) => ({ label: l.lpnCode, value: l.id })))).catch(() => {});
     locationApi.list({ page: 1, pageSize: 100, status: 1 }).then((res) => setLocationOptions(res.data.items.map((l) => ({ label: `${l.code}（${l.warehouseName ?? ''}）`, value: l.id })))).catch(() => {});
+    zoneApi.list({ page: 1, pageSize: 100, status: 1 }).then((res) => setZoneOptions(res.data.items.map((z) => ({ label: `${z.warehouseName ?? ''}/${z.name}`, value: z.id })))).catch(() => {});
   }, []);
 
   const handleEdit = async (id: number) => { try { const res = await inventoryApi.getById(id); formModal.open('edit', res.data); } catch (e) {} };
@@ -43,7 +46,8 @@ const InventoryListPage: React.FC = () => {
 
   const columns: TableProps<InventorySummaryItem>['columns'] = [
     { title: '所属 SKU', dataIndex: 'skuName', key: 'skuName', width: 220, ellipsis: true, render: (v) => v || '-' },
-    { title: '托盘', dataIndex: 'lpnCode', key: 'lpnCode', width: 140, render: (v) => v || '-' },
+    { title: '托盘名称', dataIndex: 'lpnCode', key: 'lpnCode', width: 140, render: (v) => v || '-' },
+    { title: '托盘类型', dataIndex: 'palletTypeName', key: 'palletTypeName', width: 160, render: (v) => v || '-' },
     { title: '库位', dataIndex: 'locationCode', key: 'locationCode', width: 120, render: (v) => v || '-' },
     { title: '批次', dataIndex: 'lotNo', key: 'lotNo', width: 120, render: (v) => v || '-' },
     { title: '在库', dataIndex: 'qtyOnHand', key: 'qtyOnHand', width: 100 },
@@ -60,10 +64,10 @@ const InventoryListPage: React.FC = () => {
     <PageContainer title="库存查询">
       <InventorySearchForm form={searchForm} onSearch={onSearch} onReset={onReset} skuOptions={skuOptions} />
       <Card extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => formModal.open('create')}>新增库存</Button>}>
-        <Table columns={columns} dataSource={dataSource} rowKey="id" loading={loading} scroll={{ x: 1160 }}
+        <Table columns={columns} dataSource={dataSource} rowKey="id" loading={loading} scroll={{ x: 1320 }}
           pagination={{ current: page, pageSize, total, showSizeChanger: true, showQuickJumper: true, showTotal: (t) => `共 ${t} 条记录`, onChange: onPageChange }} />
       </Card>
-      <InventoryFormModal visible={formModal.visible} mode={formModal.mode} data={formModal.data} skuOptions={skuOptions} lpnOptions={lpnOptions} locationOptions={locationOptions} onClose={formModal.close} onSuccess={refresh} />
+      <InventoryFormModal visible={formModal.visible} mode={formModal.mode} data={formModal.data} skuOptions={skuOptions} lpnOptions={lpnOptions} locationOptions={locationOptions} zoneOptions={zoneOptions} onClose={formModal.close} onSuccess={refresh} />
     </PageContainer>
   );
 };

@@ -42,6 +42,7 @@ export interface CreateLocationRequest {
 }
 
 export interface UpdateLocationRequest {
+  code?: string;
   zoneId?: number;
   locType?: string;
 }

@@ -50,6 +50,7 @@ const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
 
       if (isEdit && data) {
         const updateData: UpdateZoneRequest = {
+          code: values.code,
           name: values.name,
           type: values.type,
           remark: values.remark,
@@ -105,11 +106,11 @@ const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
               name="code"
               label="库区编码"
               rules={[
-                { required: !isEdit, message: '请输入库区编码' },
+                { required: true, message: '请输入库区编码' },
                 { pattern: /^[A-Za-z0-9-]+$/, message: '只能包含字母、数字和连字符' },
               ]}
             >
-              <Input placeholder="库区编码（仓库内唯一，创建后不可改）" disabled={isEdit} />
+              <Input placeholder="库区编码（仓库内唯一，可修改）" />
             </Form.Item>
           </Col>
           <Col span={12}>

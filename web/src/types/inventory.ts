@@ -25,6 +25,7 @@ export interface InventorySummaryItem {
   skuId: number;
   skuName?: string | null;
   lpnCode?: string | null;
+  palletTypeName?: string | null;
   locationCode?: string | null;
   lotNo?: string | null;
   qtyOnHand: number;
