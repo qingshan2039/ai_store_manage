@@ -20,8 +20,13 @@ describe('customerApi（严格对齐契约的 6 个端点）', () => {
     Object.values(r).forEach((fn) => fn.mockClear());
   });
 
-  it('create → POST /api/customers', () => {
-    const data = { code: 'C1', name: '公司A', address: '地址', shipAddress: '收货' };
+  it('create → POST /api/customers（多送货地址）', () => {
+    const data = {
+      code: 'C1',
+      name: '公司A',
+      address: '地址',
+      shipAddresses: [{ address: '收货地址1' }, { address: '收货地址2', remark: '备注' }],
+    };
     customerApi.create(data);
     expect(r.post).toHaveBeenCalledWith('/api/customers', data);
   });
@@ -36,9 +41,10 @@ describe('customerApi（严格对齐契约的 6 个端点）', () => {
     expect(r.get).toHaveBeenCalledWith('/api/customers/7');
   });
 
-  it('update → PUT /api/customers/:id', () => {
-    customerApi.update(7, { shipAddress: '新收货地址' });
-    expect(r.put).toHaveBeenCalledWith('/api/customers/7', { shipAddress: '新收货地址' });
+  it('update → PUT /api/customers/:id（替换送货地址列表）', () => {
+    const data = { shipAddresses: [{ address: '新收货地址', remark: '搬迁' }] };
+    customerApi.update(7, data);
+    expect(r.put).toHaveBeenCalledWith('/api/customers/7', data);
   });
 
   it('delete → DELETE /api/customers/:id', () => {

@@ -2,14 +2,27 @@
    顾客模块类型（对齐 OpenAPI 契约）
    ======================================== */
 
+/** 送货地址（响应） */
+export interface ShipAddress {
+  id?: number;
+  address: string;
+  remark?: string | null;
+}
+
+/** 送货地址输入（创建/更新） */
+export interface ShipAddressInput {
+  address: string;
+  remark?: string;
+}
+
 /** 顾客详情（对齐 Customer schema） */
 export interface Customer {
   id: number;
   code: string;
   name: string;
   address: string;
-  /** 收/发货地址（ship-to） */
-  shipAddress: string;
+  /** 收/发货地址列表（连锁客户可有多个） */
+  shipAddresses: ShipAddress[];
   contact?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -27,7 +40,7 @@ export interface CustomerSummary {
   code: string;
   name: string;
   address: string;
-  shipAddress: string;
+  shipAddresses: ShipAddress[];
   contact?: string | null;
   phone?: string | null;
   status: 0 | 1;
@@ -48,7 +61,7 @@ export interface CreateCustomerRequest {
   code: string;
   name: string;
   address: string;
-  shipAddress: string;
+  shipAddresses: ShipAddressInput[];
   contact?: string;
   phone?: string;
   email?: string;
@@ -56,11 +69,11 @@ export interface CreateCustomerRequest {
   status?: 0 | 1;
 }
 
-/** 更新顾客请求（code 不可改，状态走独立接口） */
+/** 更新顾客请求（code 不可改，状态走独立接口；shipAddresses 提供则整列表替换） */
 export interface UpdateCustomerRequest {
   name?: string;
   address?: string;
-  shipAddress?: string;
+  shipAddresses?: ShipAddressInput[];
   contact?: string;
   phone?: string;
   email?: string;

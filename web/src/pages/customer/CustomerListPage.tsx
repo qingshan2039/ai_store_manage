@@ -11,7 +11,7 @@ import { customerApi } from '@/api/customer';
 import { useTable } from '@/hooks/useTable';
 import { useModal } from '@/hooks/useModal';
 import { CUSTOMER_STATUS } from '@/constants/enums';
-import type { CustomerSummary, CustomerQueryParams, Customer } from '@/types/customer';
+import type { CustomerSummary, CustomerQueryParams, Customer, ShipAddress } from '@/types/customer';
 import CustomerSearchForm from './components/CustomerSearchForm';
 import CustomerFormModal from './components/CustomerFormModal';
 import { formatDateTime } from '@/utils/format';
@@ -70,11 +70,31 @@ const CustomerListPage: React.FC = () => {
     { title: '公司地址', dataIndex: 'address', key: 'address', width: 220, ellipsis: true, render: (v) => v || '-' },
     {
       title: '收/发货地址',
-      dataIndex: 'shipAddress',
-      key: 'shipAddress',
-      width: 220,
-      ellipsis: true,
-      render: (v) => v || '-',
+      dataIndex: 'shipAddresses',
+      key: 'shipAddresses',
+      width: 280,
+      render: (addrs: ShipAddress[]) => {
+        if (!addrs || addrs.length === 0) return '-';
+        return (
+          <Space direction="vertical" size={0} style={{ width: '100%' }}>
+            {addrs.map((a, i) => (
+              <span
+                key={a.id ?? i}
+                style={{
+                  maxWidth: 260,
+                  display: 'inline-block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {a.address}
+                {a.remark ? <span style={{ color: 'rgba(0,0,0,0.45)' }}>（{a.remark}）</span> : null}
+              </span>
+            ))}
+          </Space>
+        );
+      },
     },
     { title: '联系人', dataIndex: 'contact', key: 'contact', width: 100, render: (v) => v || '-' },
     { title: '电话', dataIndex: 'phone', key: 'phone', width: 140, render: (v) => v || '-' },

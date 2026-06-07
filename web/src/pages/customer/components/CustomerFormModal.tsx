@@ -1,11 +1,17 @@
 /* ========================================
-   顾客新增/编辑弹窗
+   顾客新增/编辑弹窗（送货地址为可增减的多条）
    ======================================== */
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select, Row, Col, message } from 'antd';
+import { Modal, Form, Input, Select, Row, Col, Space, Button, message } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { customerApi } from '@/api/customer';
 import { CUSTOMER_STATUS_OPTIONS } from '@/constants/enums';
-import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '@/types/customer';
+import type {
+  Customer,
+  CreateCustomerRequest,
+  UpdateCustomerRequest,
+  ShipAddressInput,
+} from '@/types/customer';
 import type { ModalMode } from '@/types/common';
 
 const { TextArea } = Input;
@@ -32,10 +38,16 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
   useEffect(() => {
     if (visible) {
       if (isEdit && data) {
-        form.setFieldsValue({ ...data });
+        form.setFieldsValue({
+          ...data,
+          shipAddresses:
+            data.shipAddresses && data.shipAddresses.length > 0
+              ? data.shipAddresses.map((s) => ({ address: s.address, remark: s.remark ?? undefined }))
+              : [{ address: '', remark: undefined }],
+        });
       } else {
         form.resetFields();
-        form.setFieldsValue({ status: 1 });
+        form.setFieldsValue({ status: 1, shipAddresses: [{ address: '', remark: undefined }] });
       }
     }
   }, [visible, mode, data, form, isEdit]);
@@ -45,12 +57,15 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
       const values = await form.validateFields();
       setLoading(true);
 
+      const shipAddresses: ShipAddressInput[] = (values.shipAddresses || []).map(
+        (s: ShipAddressInput) => ({ address: s.address, remark: s.remark || undefined }),
+      );
+
       if (isEdit && data) {
-        // 更新逻辑（code 不可改，状态走独立接口）
         const updateData: UpdateCustomerRequest = {
           name: values.name,
           address: values.address,
-          shipAddress: values.shipAddress,
+          shipAddresses,
           contact: values.contact,
           phone: values.phone,
           email: values.email,
@@ -63,7 +78,7 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
           code: values.code,
           name: values.name,
           address: values.address,
-          shipAddress: values.shipAddress,
+          shipAddresses,
           contact: values.contact,
           phone: values.phone,
           email: values.email,
@@ -90,7 +105,7 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={loading}
-      width={680}
+      width={720}
       destroyOnClose
       maskClosable={false}
     >
@@ -122,29 +137,50 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              name="address"
-              label="公司地址"
-              rules={[{ required: true, message: '请输入公司地址' }]}
-            >
-              <Input placeholder="客户公司地址（注册/账单地址）" />
-            </Form.Item>
-          </Col>
-        </Row>
+        <Form.Item
+          name="address"
+          label="公司地址"
+          rules={[{ required: true, message: '请输入公司地址' }]}
+        >
+          <Input placeholder="客户公司地址（注册/账单地址）" />
+        </Form.Item>
 
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              name="shipAddress"
-              label="收/发货地址"
-              rules={[{ required: true, message: '请输入收/发货地址' }]}
-            >
-              <Input placeholder="ship-to 收/发货地址" />
-            </Form.Item>
-          </Col>
-        </Row>
+        {/* 多条收/发货地址：连锁客户可增减 */}
+        <Form.Item label="收/发货地址（可多个）" required>
+          <Form.List name="shipAddresses">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map((field) => (
+                  <Space key={field.key} align="baseline" style={{ display: 'flex', marginBottom: 8 }}>
+                    <Form.Item
+                      name={[field.name, 'address']}
+                      rules={[
+                        { required: true, message: '请输入收/发货地址' },
+                        { min: 2, max: 255, message: '长度 2-255 个字符' },
+                      ]}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Input placeholder="收/发货地址" style={{ width: 300 }} />
+                    </Form.Item>
+                    <Form.Item
+                      name={[field.name, 'remark']}
+                      rules={[{ max: 255, message: '备注不超过 255 字' }]}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Input placeholder="备注（如客户报错地址后的修正说明）" style={{ width: 260 }} />
+                    </Form.Item>
+                    {fields.length > 1 && (
+                      <MinusCircleOutlined onClick={() => remove(field.name)} />
+                    )}
+                  </Space>
+                ))}
+                <Button type="dashed" onClick={() => add({ address: '', remark: undefined })} block icon={<PlusOutlined />}>
+                  添加送货地址
+                </Button>
+              </>
+            )}
+          </Form.List>
+        </Form.Item>
 
         <Row gutter={16}>
           <Col span={12}>
@@ -161,11 +197,7 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              name="email"
-              label="邮箱"
-              rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}
-            >
+            <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}>
               <Input placeholder="邮箱（选填）" />
             </Form.Item>
           </Col>
@@ -178,13 +210,9 @@ const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
           )}
         </Row>
 
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item name="remark" label="备注">
-              <TextArea rows={3} placeholder="备注信息（选填）" maxLength={500} showCount />
-            </Form.Item>
-          </Col>
-        </Row>
+        <Form.Item name="remark" label="备注">
+          <TextArea rows={2} placeholder="备注信息（选填）" maxLength={500} showCount />
+        </Form.Item>
       </Form>
     </Modal>
   );
