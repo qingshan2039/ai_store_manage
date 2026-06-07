@@ -105,3 +105,16 @@ export const WAREHOUSE_TYPE_OPTIONS = [
   { label: '半成品仓', value: 'SEMI' },
   { label: '成品仓', value: 'FINISHED' },
 ];
+
+/** 物料阶段类型（对齐契约 ItemType） */
+export const ITEM_TYPE_MAP: Record<string, string> = {
+  RAW: '原料',
+  SEMI: '半成品',
+  FINISHED: '成品',
+};
+
+export const ITEM_TYPE_OPTIONS = [
+  { label: '原料', value: 'RAW' },
+  { label: '半成品', value: 'SEMI' },
+  { label: '成品', value: 'FINISHED' },
+];

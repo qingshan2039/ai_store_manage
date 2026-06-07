@@ -9,6 +9,7 @@ import {
   ApartmentOutlined,
   DatabaseOutlined,
   InboxOutlined,
+  GoldOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -46,6 +47,16 @@ export const menuConfig: MenuItemConfig[] = [
       { key: '/base/warehouses', label: '仓库管理' },
       { key: '/base/zones', label: '库区管理' },
       { key: '/base/pallet-types', label: '托盘类型' },
+    ],
+  },
+  {
+    key: '/material',
+    label: '物料管理',
+    icon: React.createElement(GoldOutlined),
+    children: [
+      { key: '/material/categories', label: '物料品类' },
+      { key: '/material/spus', label: '物料 SPU' },
+      { key: '/material/skus', label: '物料 SKU' },
     ],
   },
   {

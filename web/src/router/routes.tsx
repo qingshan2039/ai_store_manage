@@ -23,6 +23,9 @@ import SupplierListPage from '@/pages/supplier/SupplierListPage';
 import WarehouseListPage from '@/pages/warehouse/WarehouseListPage';
 import ZoneListPage from '@/pages/zone/ZoneListPage';
 import PalletTypeListPage from '@/pages/pallet/PalletTypeListPage';
+import MaterialCategoryListPage from '@/pages/material-category/MaterialCategoryListPage';
+import SpuListPage from '@/pages/spu/SpuListPage';
+import SkuListPage from '@/pages/sku/SkuListPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -60,6 +63,11 @@ export const routes: RouteObject[] = [
       { path: 'base/warehouses', element: <WarehouseListPage /> },
       { path: 'base/zones', element: <ZoneListPage /> },
       { path: 'base/pallet-types', element: <PalletTypeListPage /> },
+
+      /* ── 物料管理（目录：品类/SPU/SKU） ── */
+      { path: 'material/categories', element: <MaterialCategoryListPage /> },
+      { path: 'material/spus', element: <SpuListPage /> },
+      { path: 'material/skus', element: <SkuListPage /> },
 
       /* ── 库存管理（预留） ── */
       { path: 'inventory/stock', element: <ComingSoon /> },
