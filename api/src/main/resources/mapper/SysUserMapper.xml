@@ -40,6 +40,13 @@
         <if test="departmentId != null">
             AND department_id = #{departmentId}
         </if>
+        <!-- 部门类型筛选（按所属部门 type 过滤，供司机/跟车员选人用） -->
+        <if test="departmentType != null and departmentType != ''">
+            AND EXISTS (
+                SELECT 1 FROM sys_department d
+                WHERE d.id = sys_user.department_id AND d.deleted = 0 AND d.type = #{departmentType}
+            )
+        </if>
         <!-- 职位筛选（模糊匹配） -->
         <if test="jobTitle != null and jobTitle != ''">
             AND job_title LIKE CONCAT('%', #{jobTitle}, '%')

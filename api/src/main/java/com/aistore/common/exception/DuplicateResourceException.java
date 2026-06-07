@@ -99,4 +99,12 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateSkuCode() {
         return new DuplicateResourceException("DUPLICATE_SKU_CODE", "SKU 编码已存在");
     }
+
+    public static DuplicateResourceException duplicateVehiclePlate() {
+        return new DuplicateResourceException("DUPLICATE_VEHICLE_PLATE", "车牌号已存在");
+    }
+
+    public static DuplicateResourceException duplicateDriverCheckin() {
+        return new DuplicateResourceException("DUPLICATE_DRIVER_CHECKIN", "该司机当天已有打卡记录");
+    }
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.vehicle.mapper.VehicleMapper">
+
+    <select id="selectVehiclePage" resultType="com.aistore.module.vehicle.entity.Vehicle">
+        SELECT
+            id, plate_no, default_driver_user_id, default_driver_other,
+            default_escort_user_id, default_escort_other, remark, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM vehicle
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND plate_no LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY id DESC
+    </select>
+
+</mapper>

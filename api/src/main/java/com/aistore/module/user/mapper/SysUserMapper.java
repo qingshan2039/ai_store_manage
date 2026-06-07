@@ -27,6 +27,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param phoneNumber    手机号筛选
      * @param status         状态筛选
      * @param departmentId   部门 ID 筛选
+     * @param departmentType 部门类型筛选（按所属部门 type）
      * @param jobTitle       职位筛选
      * @param gender         性别筛选
      * @param createdAtStart 创建时间起始
@@ -41,6 +42,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
             @Param("phoneNumber") String phoneNumber,
             @Param("status") Integer status,
             @Param("departmentId") Long departmentId,
+            @Param("departmentType") String departmentType,
             @Param("jobTitle") String jobTitle,
             @Param("gender") Integer gender,
             @Param("createdAtStart") LocalDateTime createdAtStart,

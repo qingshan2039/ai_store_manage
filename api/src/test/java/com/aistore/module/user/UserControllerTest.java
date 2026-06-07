@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,9 +73,23 @@ class UserControllerTest extends AbstractPostgresTest {
     void listUsers_returns200() throws Exception {
         mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(utf8(USER_JSON)))
                 .andExpect(status().isCreated());
+        // 列表按 created_at DESC，刚建的用户位列首位；V6 种子也在库中故 total 取 >=1
         mockMvc.perform(get("/api/users").param("pageSize", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.total").value(greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.items[0].employeeNo").value("WH-2026"));
+    }
+
+    @Test
+    void listUsers_filterByDepartmentType_returnsMatchingUsers() throws Exception {
+        // V6 种子在运输部灌入 4 名司机，按部门类型过滤应至少返回 4 条
+        mockMvc.perform(get("/api/users").param("departmentType", "TRANSPORT").param("pageSize", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.total").value(greaterThanOrEqualTo(4)));
+        // 无种子用户的部门类型返回空
+        mockMvc.perform(get("/api/users").param("departmentType", "FINANCE").param("pageSize", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0));
     }
 }

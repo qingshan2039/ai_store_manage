@@ -57,4 +57,16 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException skuNotFound() {
         return new ResourceNotFoundException("SKU_NOT_FOUND", "SKU 不存在");
     }
+
+    public static ResourceNotFoundException vehicleNotFound() {
+        return new ResourceNotFoundException("VEHICLE_NOT_FOUND", "车辆不存在");
+    }
+
+    public static ResourceNotFoundException fuelRecordNotFound() {
+        return new ResourceNotFoundException("FUEL_RECORD_NOT_FOUND", "打油记录不存在");
+    }
+
+    public static ResourceNotFoundException driverCheckinNotFound() {
+        return new ResourceNotFoundException("DRIVER_CHECKIN_NOT_FOUND", "打卡记录不存在");
+    }
 }

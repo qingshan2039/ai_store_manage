@@ -124,6 +124,7 @@ public class UserServiceImpl implements UserService {
                 param.getPhoneNumber(),
                 param.getStatus(),
                 param.getDepartmentId(),
+                param.getDepartmentType(),
                 param.getJobTitle(),
                 param.getGender(),
                 param.getCreatedAtStart(),

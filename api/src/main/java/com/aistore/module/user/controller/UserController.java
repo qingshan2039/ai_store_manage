@@ -89,6 +89,7 @@ public class UserController {
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String departmentType,
             @RequestParam(required = false) String jobTitle,
             @RequestParam(required = false) Integer gender,
             @RequestParam(required = false)
@@ -106,6 +107,7 @@ public class UserController {
                 .phoneNumber(phoneNumber)
                 .status(status)
                 .departmentId(departmentId)
+                .departmentType(departmentType)
                 .jobTitle(jobTitle)
                 .gender(gender)
                 .createdAtStart(createdAtStart)

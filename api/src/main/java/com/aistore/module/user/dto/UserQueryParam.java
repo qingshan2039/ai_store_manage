@@ -49,6 +49,11 @@ public class UserQueryParam {
     private Long departmentId;
 
     /**
+     * 部门类型筛选（按所属部门 type 过滤，如 TRANSPORT/WAREHOUSE/PRODUCTION）
+     */
+    private String departmentType;
+
+    /**
      * 职位筛选（模糊匹配）
      */
     private String jobTitle;
