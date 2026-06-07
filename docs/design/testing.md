@@ -17,8 +17,8 @@
 ### 形态
 - `@SpringBootTest` + `@AutoConfigureMockMvc`,通过 **MockMvc** 走 Controller → Service → Mapper → **真实 PostgreSQL** 的完整链路。
 - 每个用例标 `@Transactional`,执行后**自动回滚**,用例之间互不影响;Flyway 灌入的 8 条部门种子为已提交数据,测试可读。
-- 覆盖:用户/部门的创建、查询、更新、状态、删除,以及错误分支(`400 VALIDATION_ERROR`、`404 *_NOT_FOUND`、`409 DUPLICATE_*` / `DEPARTMENT_IN_USE`)、密码不出现在响应等。
-- 测试类:`AiStoreManageApplicationTests`(上下文加载)、`module/user/UserControllerTest`、`module/department/DepartmentControllerTest`。基类 `AbstractPostgresTest`。
+- 覆盖:用户/部门/顾客的创建、查询、更新、状态、删除,以及错误分支(`400 VALIDATION_ERROR`、`404 *_NOT_FOUND`、`409 DUPLICATE_*` / `DEPARTMENT_IN_USE`)、密码不出现在响应等。
+- 测试类:`AiStoreManageApplicationTests`(上下文加载)、`module/user/UserControllerTest`、`module/department/DepartmentControllerTest`、`module/customer/CustomerControllerTest`。基类 `AbstractPostgresTest`。
 
 ### 前置条件:dev PostgreSQL + 测试库
 测试连接 **dev PG 容器**(`ai-store-pg`,端口 5433)内的独立库 **`ai_store_test`**(与业务库 `ai_store_manage` 隔离)。首次需创建:

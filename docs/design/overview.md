@@ -45,6 +45,7 @@ ai_store_manage/
 | --- | --- | --- |
 | 用户管理 | ✅ 已实现 | [features/user.md](../features/user.md) |
 | 部门管理 | ✅ 已实现 | [features/department.md](../features/department.md) |
+| 顾客管理 | ✅ 已实现 | [features/customer.md](../features/customer.md) |
 | 商品 / 仓库 / 供应商 | 🚧 预留 | — |
 | 库存(查询/出入库/调拨/盘点) | 🚧 预留 | — |
 
