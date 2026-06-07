@@ -1528,6 +1528,43 @@ components:
     # 顾客相关 Schemas
     # ──────────────────────────────────────────────
 
+    ShipAddressInput:
+      type: object
+      description: 送货地址输入（创建/更新顾客时）
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          description: 收/发货地址
+          minLength: 2
+          maxLength: 255
+          example: "上海市嘉定区物流园 5 号库"
+        remark:
+          type: string
+          description: 送货地址备注（如客户报错地址后填写的修正说明）
+          maxLength: 255
+          example: "原地址有误，已更正为 5 号库"
+
+    ShipAddress:
+      type: object
+      description: 送货地址（响应）
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 送货地址 ID
+          example: 1
+        address:
+          type: string
+          description: 收/发货地址
+          example: "上海市嘉定区物流园 5 号库"
+        remark:
+          type: string
+          description: 送货地址备注
+          nullable: true
+          example: "原地址有误，已更正"
+
     CreateCustomerRequest:
       type: object
       description: 创建顾客请求体
@@ -1535,7 +1572,7 @@ components:
         - code
         - name
         - address
-        - shipAddress
+        - shipAddresses
       properties:
         code:
           type: string
@@ -1556,12 +1593,12 @@ components:
           minLength: 2
           maxLength: 255
           example: "上海市浦东新区世纪大道 100 号"
-        shipAddress:
-          type: string
-          description: 收/发货地址（ship-to）
-          minLength: 2
-          maxLength: 255
-          example: "上海市嘉定区物流园 5 号库"
+        shipAddresses:
+          type: array
+          description: 收/发货地址列表（连锁客户可有多个），至少 1 个
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ShipAddressInput'
         contact:
           type: string
           description: 联系人
@@ -1608,12 +1645,12 @@ components:
           minLength: 2
           maxLength: 255
           example: "上海市浦东新区世纪大道 200 号"
-        shipAddress:
-          type: string
-          description: 收/发货地址（ship-to）
-          minLength: 2
-          maxLength: 255
-          example: "上海市青浦区物流中心 8 号库"
+        shipAddresses:
+          type: array
+          description: 收/发货地址列表（提供则整列表替换，至少 1 个）
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ShipAddressInput'
         contact:
           type: string
           description: 联系人
@@ -1671,10 +1708,11 @@ components:
           type: string
           description: 客户公司地址
           example: "上海市浦东新区世纪大道 100 号"
-        shipAddress:
-          type: string
-          description: 收/发货地址（ship-to）
-          example: "上海市嘉定区物流园 5 号库"
+        shipAddresses:
+          type: array
+          description: 收/发货地址列表
+          items:
+            $ref: '#/components/schemas/ShipAddress'
         contact:
           type: string
           description: 联系人
@@ -1744,10 +1782,11 @@ components:
           type: string
           description: 客户公司地址
           example: "上海市浦东新区世纪大道 100 号"
-        shipAddress:
-          type: string
-          description: 收/发货地址（ship-to）
-          example: "上海市嘉定区物流园 5 号库"
+        shipAddresses:
+          type: array
+          description: 收/发货地址列表
+          items:
+            $ref: '#/components/schemas/ShipAddress'
         contact:
           type: string
           description: 联系人
