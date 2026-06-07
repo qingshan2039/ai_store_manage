@@ -115,4 +115,12 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateUnitConversion() {
         return new DuplicateResourceException("DUPLICATE_UNIT_CONVERSION", "该 SKU 的该单位换算已存在");
     }
+
+    public static DuplicateResourceException duplicateLocationCode() {
+        return new DuplicateResourceException("DUPLICATE_LOCATION_CODE", "同一仓库下库位编码已存在");
+    }
+
+    public static DuplicateResourceException duplicateLpnCode() {
+        return new DuplicateResourceException("DUPLICATE_LPN_CODE", "托盘号已存在");
+    }
 }

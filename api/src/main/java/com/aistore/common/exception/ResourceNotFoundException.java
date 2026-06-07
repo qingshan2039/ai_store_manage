@@ -77,4 +77,16 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException itemImageNotFound() {
         return new ResourceNotFoundException("ITEM_IMAGE_NOT_FOUND", "物料图片不存在");
     }
+
+    public static ResourceNotFoundException locationNotFound() {
+        return new ResourceNotFoundException("LOCATION_NOT_FOUND", "库位不存在");
+    }
+
+    public static ResourceNotFoundException lpnNotFound() {
+        return new ResourceNotFoundException("LPN_NOT_FOUND", "托盘实例不存在");
+    }
+
+    public static ResourceNotFoundException inventoryNotFound() {
+        return new ResourceNotFoundException("INVENTORY_NOT_FOUND", "库存记录不存在");
+    }
 }

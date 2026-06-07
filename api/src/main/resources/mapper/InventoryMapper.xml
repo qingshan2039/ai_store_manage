@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.inventory.mapper.InventoryMapper">
+
+    <select id="selectInventoryPage" resultType="com.aistore.module.inventory.entity.Inventory">
+        SELECT
+            id, sku_id, lpn_id, location_id, lot_no, mfg_date, exp_date,
+            qty_on_hand, qty_reserved, deleted, created_at, updated_at, created_by, updated_by
+        FROM inventory
+        WHERE deleted = 0
+        <if test="skuId != null">
+            AND sku_id = #{skuId}
+        </if>
+        <if test="lpnId != null">
+            AND lpn_id = #{lpnId}
+        </if>
+        <if test="locationId != null">
+            AND location_id = #{locationId}
+        </if>
+        ORDER BY created_at DESC, id DESC
+    </select>
+
+</mapper>
