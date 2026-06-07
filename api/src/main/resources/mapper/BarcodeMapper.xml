@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.barcode.mapper.BarcodeMapper">
+
+    <select id="selectBarcodePage" resultType="com.aistore.module.barcode.entity.Barcode">
+        SELECT
+            id, level_id, barcode, barcode_type, is_primary, valid_from, valid_to,
+            status, deleted, created_at, updated_at, created_by, updated_by
+        FROM barcode
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND barcode LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="levelId != null">
+            AND level_id = #{levelId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC, id DESC
+    </select>
+
+</mapper>

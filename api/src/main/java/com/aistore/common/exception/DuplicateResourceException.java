@@ -99,4 +99,20 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateSkuCode() {
         return new DuplicateResourceException("DUPLICATE_SKU_CODE", "SKU 编码已存在");
     }
+
+    public static DuplicateResourceException duplicatePackagingLevelSeq() {
+        return new DuplicateResourceException("DUPLICATE_PACKAGING_LEVEL_SEQ", "同一 SKU 下该层级序号已存在");
+    }
+
+    public static DuplicateResourceException duplicatePackagingRelation() {
+        return new DuplicateResourceException("DUPLICATE_PACKAGING_RELATION", "该父子层包装关系已存在");
+    }
+
+    public static DuplicateResourceException duplicateBarcode() {
+        return new DuplicateResourceException("DUPLICATE_BARCODE", "条码已存在");
+    }
+
+    public static DuplicateResourceException duplicateUnitConversion() {
+        return new DuplicateResourceException("DUPLICATE_UNIT_CONVERSION", "该 SKU 的该单位换算已存在");
+    }
 }

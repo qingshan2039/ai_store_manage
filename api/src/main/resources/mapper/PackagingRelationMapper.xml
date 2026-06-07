@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.packagingrelation.mapper.PackagingRelationMapper">
+
+    <select id="selectRelationPage" resultType="com.aistore.module.packagingrelation.entity.PackagingRelation">
+        SELECT
+            id, parent_level_id, child_level_id, child_qty, is_fixed_qty, tare_weight,
+            status, deleted, created_at, updated_at, created_by, updated_by
+        FROM packaging_relation
+        WHERE deleted = 0
+        <if test="parentLevelId != null">
+            AND parent_level_id = #{parentLevelId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY parent_level_id ASC, id ASC
+    </select>
+
+</mapper>

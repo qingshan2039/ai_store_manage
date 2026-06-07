@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.itemimage.mapper.ItemImageMapper">
+
+    <select id="selectImagePage" resultType="com.aistore.module.itemimage.entity.ItemImage">
+        SELECT
+            id, spu_id, sku_id, level_id, image_url, image_type, sort_order, is_primary,
+            status, deleted, created_at, updated_at, created_by, updated_by
+        FROM item_image
+        WHERE deleted = 0
+        <if test="spuId != null">
+            AND spu_id = #{spuId}
+        </if>
+        <if test="skuId != null">
+            AND sku_id = #{skuId}
+        </if>
+        <if test="levelId != null">
+            AND level_id = #{levelId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+</mapper>
