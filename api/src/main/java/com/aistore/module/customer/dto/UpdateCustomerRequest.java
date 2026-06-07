@@ -1,11 +1,14 @@
 package com.aistore.module.customer.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 更新顾客请求 DTO
@@ -24,8 +27,12 @@ public class UpdateCustomerRequest {
     @Size(min = 2, max = 255, message = "客户公司地址长度必须在2-255个字符之间")
     private String address;
 
-    @Size(min = 2, max = 255, message = "收/发货地址长度必须在2-255个字符之间")
-    private String shipAddress;
+    /**
+     * 收/发货地址列表（提供则整列表替换，至少 1 个；不传表示不修改）
+     */
+    @Size(min = 1, message = "提供收/发货地址时至少需要一个")
+    @Valid
+    private List<ShipAddressInput> shipAddresses;
 
     @Size(max = 64, message = "联系人长度不能超过64个字符")
     private String contact;

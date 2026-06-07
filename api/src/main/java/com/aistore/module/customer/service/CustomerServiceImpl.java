@@ -8,7 +8,9 @@ import com.aistore.module.customer.dto.CustomerQueryParam;
 import com.aistore.module.customer.dto.UpdateCustomerRequest;
 import com.aistore.module.customer.dto.UpdateCustomerStatusRequest;
 import com.aistore.module.customer.entity.Customer;
+import com.aistore.module.customer.entity.CustomerShipAddress;
 import com.aistore.module.customer.mapper.CustomerMapper;
+import com.aistore.module.customer.mapper.CustomerShipAddressMapper;
 import com.aistore.module.customer.vo.CustomerListResponse;
 import com.aistore.module.customer.vo.CustomerSummaryVO;
 import com.aistore.module.customer.vo.CustomerVO;
@@ -22,9 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 顾客服务实现类
+ * 收/发货地址为一对多，存于 customer_ship_address 子表；更新时整列表替换。
  */
 @Service
 @RequiredArgsConstructor
@@ -33,12 +38,15 @@ public class CustomerServiceImpl implements CustomerService {
     private static final Logger log = LoggerFactory.getLogger(CustomerServiceImpl.class);
 
     private final CustomerMapper customerMapper;
+    private final CustomerShipAddressMapper shipAddressMapper;
     private final CustomerConverter customerConverter;
 
     @Override
     @Transactional
     public CustomerVO createCustomer(CreateCustomerRequest request) {
-        log.info("创建顾客: name={}, code={}", request.getName(), request.getCode());
+        log.info("创建顾客: name={}, code={}, 地址数={}",
+                request.getName(), request.getCode(),
+                request.getShipAddresses() != null ? request.getShipAddresses().size() : 0);
 
         // 1. 唯一性校验 - 名称
         LambdaQueryWrapper<Customer> nameQuery = new LambdaQueryWrapper<>();
@@ -54,13 +62,17 @@ public class CustomerServiceImpl implements CustomerService {
             throw DuplicateResourceException.duplicateCustomerCode();
         }
 
-        // 3. 转换并插入
+        // 3. 插入顾客主表
         Customer entity = customerConverter.toEntity(request);
         customerMapper.insert(entity);
+
+        // 4. 插入送货地址子表
+        customerConverter.toShipAddressEntities(entity.getId(), request.getShipAddresses())
+                .forEach(shipAddressMapper::insert);
         log.info("顾客创建成功: id={}, name={}", entity.getId(), entity.getName());
 
         Customer saved = customerMapper.selectById(entity.getId());
-        return customerConverter.toCustomerVO(saved);
+        return customerConverter.toCustomerVO(saved, loadAddresses(entity.getId()));
     }
 
     @Override
@@ -70,7 +82,7 @@ public class CustomerServiceImpl implements CustomerService {
         if (entity == null) {
             throw ResourceNotFoundException.customerNotFound();
         }
-        return customerConverter.toCustomerVO(entity);
+        return customerConverter.toCustomerVO(entity, loadAddresses(id));
     }
 
     @Override
@@ -86,8 +98,13 @@ public class CustomerServiceImpl implements CustomerService {
         Page<Customer> page = new Page<>(pageNum, pageSize);
         IPage<Customer> result = customerMapper.selectCustomerPage(page, param.getKeyword(), param.getStatus());
 
-        List<CustomerSummaryVO> items = result.getRecords().stream()
-                .map(customerConverter::toCustomerSummaryVO)
+        List<Customer> records = result.getRecords();
+        // 批量加载本页顾客的送货地址（一次查询，避免 N+1）
+        Map<Long, List<CustomerShipAddress>> addrMap =
+                loadAddressesForCustomers(records.stream().map(Customer::getId).toList());
+
+        List<CustomerSummaryVO> items = records.stream()
+                .map(c -> customerConverter.toCustomerSummaryVO(c, addrMap.getOrDefault(c.getId(), List.of())))
                 .toList();
 
         int totalPages = (int) Math.ceil((double) result.getTotal() / pageSize);
@@ -123,10 +140,18 @@ public class CustomerServiceImpl implements CustomerService {
 
         customerConverter.updateEntity(entity, request);
         customerMapper.updateById(entity);
+
+        // 送货地址：提供则整列表替换（先删后插）
+        if (request.getShipAddresses() != null) {
+            shipAddressMapper.delete(new LambdaQueryWrapper<CustomerShipAddress>()
+                    .eq(CustomerShipAddress::getCustomerId, id));
+            customerConverter.toShipAddressEntities(id, request.getShipAddresses())
+                    .forEach(shipAddressMapper::insert);
+        }
         log.info("顾客信息更新成功: id={}", id);
 
         Customer updated = customerMapper.selectById(id);
-        return customerConverter.toCustomerVO(updated);
+        return customerConverter.toCustomerVO(updated, loadAddresses(id));
     }
 
     @Override
@@ -137,6 +162,9 @@ public class CustomerServiceImpl implements CustomerService {
         if (entity == null) {
             throw ResourceNotFoundException.customerNotFound();
         }
+        // 物理删除送货地址子表，逻辑删除顾客主表
+        shipAddressMapper.delete(new LambdaQueryWrapper<CustomerShipAddress>()
+                .eq(CustomerShipAddress::getCustomerId, id));
         customerMapper.deleteById(id);
         log.info("顾客删除成功: id={}", id);
     }
@@ -153,9 +181,27 @@ public class CustomerServiceImpl implements CustomerService {
 
         entity.setStatus(request.getStatus());
         customerMapper.updateById(entity);
-        log.info("顾客状态变更成功: id={}, status={}", id, request.getStatus());
 
         Customer updated = customerMapper.selectById(id);
-        return customerConverter.toCustomerVO(updated);
+        return customerConverter.toCustomerVO(updated, loadAddresses(id));
+    }
+
+    /** 加载单个顾客的送货地址（按 id 升序） */
+    private List<CustomerShipAddress> loadAddresses(Long customerId) {
+        return shipAddressMapper.selectList(new LambdaQueryWrapper<CustomerShipAddress>()
+                .eq(CustomerShipAddress::getCustomerId, customerId)
+                .orderByAsc(CustomerShipAddress::getId));
+    }
+
+    /** 批量加载多个顾客的送货地址，按 customerId 分组 */
+    private Map<Long, List<CustomerShipAddress>> loadAddressesForCustomers(List<Long> customerIds) {
+        if (customerIds.isEmpty()) {
+            return Map.of();
+        }
+        return shipAddressMapper.selectList(new LambdaQueryWrapper<CustomerShipAddress>()
+                        .in(CustomerShipAddress::getCustomerId, customerIds)
+                        .orderByAsc(CustomerShipAddress::getId))
+                .stream()
+                .collect(Collectors.groupingBy(CustomerShipAddress::getCustomerId));
     }
 }

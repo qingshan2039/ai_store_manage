@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 顾客摘要响应 VO，用于列表展示
@@ -21,8 +22,8 @@ public class CustomerSummaryVO {
     private String code;
     private String name;
     private String address;
-    /** 收/发货地址（ship-to） */
-    private String shipAddress;
+    /** 收/发货地址列表 */
+    private List<ShipAddressVO> shipAddresses;
     private String contact;
     private String phone;
     /** 状态：0=禁用，1=启用 */

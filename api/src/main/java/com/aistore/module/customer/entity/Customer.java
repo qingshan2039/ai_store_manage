@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 /**
  * 顾客（客户公司）实体
  * 对应数据库表 customer
+ * 收/发货地址为一对多，存于 customer_ship_address 子表（见 {@link CustomerShipAddress}）
  */
 @Data
 @Builder
@@ -44,11 +45,6 @@ public class Customer {
      * 客户公司地址
      */
     private String address;
-
-    /**
-     * 收/发货地址（ship-to）
-     */
-    private String shipAddress;
 
     /**
      * 联系人

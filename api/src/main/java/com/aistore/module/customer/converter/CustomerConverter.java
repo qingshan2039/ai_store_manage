@@ -1,28 +1,32 @@
 package com.aistore.module.customer.converter;
 
 import com.aistore.module.customer.dto.CreateCustomerRequest;
+import com.aistore.module.customer.dto.ShipAddressInput;
 import com.aistore.module.customer.dto.UpdateCustomerRequest;
 import com.aistore.module.customer.entity.Customer;
+import com.aistore.module.customer.entity.CustomerShipAddress;
 import com.aistore.module.customer.vo.CustomerSummaryVO;
 import com.aistore.module.customer.vo.CustomerVO;
+import com.aistore.module.customer.vo.ShipAddressVO;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 顾客模块对象转换器
- * 负责 Entity ↔ VO / DTO 之间的转换
+ * 收/发货地址为一对多，VO 构造时传入对应的子表记录列表。
  */
 @Component
 public class CustomerConverter {
 
     /**
-     * CreateCustomerRequest → Customer 实体
+     * CreateCustomerRequest → Customer 实体（不含送货地址，地址在子表）
      */
     public Customer toEntity(CreateCustomerRequest request) {
         return Customer.builder()
                 .code(request.getCode())
                 .name(request.getName())
                 .address(request.getAddress())
-                .shipAddress(request.getShipAddress())
                 .contact(request.getContact())
                 .phone(request.getPhone())
                 .email(request.getEmail())
@@ -33,15 +37,31 @@ public class CustomerConverter {
     }
 
     /**
-     * Customer 实体 → CustomerVO（顾客详情响应）
+     * ShipAddressInput 列表 → 子表实体列表（绑定 customerId）
      */
-    public CustomerVO toCustomerVO(Customer entity) {
+    public List<CustomerShipAddress> toShipAddressEntities(Long customerId, List<ShipAddressInput> inputs) {
+        if (inputs == null) {
+            return List.of();
+        }
+        return inputs.stream()
+                .map(in -> CustomerShipAddress.builder()
+                        .customerId(customerId)
+                        .address(in.getAddress())
+                        .remark(in.getRemark())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * Customer 实体 + 送货地址 → CustomerVO（详情响应）
+     */
+    public CustomerVO toCustomerVO(Customer entity, List<CustomerShipAddress> addresses) {
         return CustomerVO.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .name(entity.getName())
                 .address(entity.getAddress())
-                .shipAddress(entity.getShipAddress())
+                .shipAddresses(toShipAddressVOList(addresses))
                 .contact(entity.getContact())
                 .phone(entity.getPhone())
                 .email(entity.getEmail())
@@ -55,15 +75,15 @@ public class CustomerConverter {
     }
 
     /**
-     * Customer 实体 → CustomerSummaryVO（列表项响应）
+     * Customer 实体 + 送货地址 → CustomerSummaryVO（列表项）
      */
-    public CustomerSummaryVO toCustomerSummaryVO(Customer entity) {
+    public CustomerSummaryVO toCustomerSummaryVO(Customer entity, List<CustomerShipAddress> addresses) {
         return CustomerSummaryVO.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .name(entity.getName())
                 .address(entity.getAddress())
-                .shipAddress(entity.getShipAddress())
+                .shipAddresses(toShipAddressVOList(addresses))
                 .contact(entity.getContact())
                 .phone(entity.getPhone())
                 .status(entity.getStatus())
@@ -71,8 +91,22 @@ public class CustomerConverter {
                 .build();
     }
 
+    private List<ShipAddressVO> toShipAddressVOList(List<CustomerShipAddress> addresses) {
+        if (addresses == null) {
+            return List.of();
+        }
+        return addresses.stream()
+                .map(a -> ShipAddressVO.builder()
+                        .id(a.getId())
+                        .address(a.getAddress())
+                        .remark(a.getRemark())
+                        .build())
+                .toList();
+    }
+
     /**
-     * 使用 UpdateCustomerRequest 中的非 null 字段更新 Customer 实体
+     * 使用 UpdateCustomerRequest 中的非 null 标量字段更新 Customer 实体
+     * （送货地址列表由 Service 单独处理）
      */
     public void updateEntity(Customer entity, UpdateCustomerRequest request) {
         if (request.getName() != null) {
@@ -80,9 +114,6 @@ public class CustomerConverter {
         }
         if (request.getAddress() != null) {
             entity.setAddress(request.getAddress());
-        }
-        if (request.getShipAddress() != null) {
-            entity.setShipAddress(request.getShipAddress());
         }
         if (request.getContact() != null) {
             entity.setContact(request.getContact());

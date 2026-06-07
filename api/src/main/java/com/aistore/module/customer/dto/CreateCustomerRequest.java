@@ -1,15 +1,19 @@
 package com.aistore.module.customer.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 创建顾客请求 DTO
@@ -44,11 +48,11 @@ public class CreateCustomerRequest {
     private String address;
 
     /**
-     * 收/发货地址（ship-to）
+     * 收/发货地址列表（连锁客户可有多个），至少 1 个
      */
-    @NotBlank(message = "收/发货地址不能为空")
-    @Size(min = 2, max = 255, message = "收/发货地址长度必须在2-255个字符之间")
-    private String shipAddress;
+    @NotEmpty(message = "至少需要一个收/发货地址")
+    @Valid
+    private List<ShipAddressInput> shipAddresses;
 
     /**
      * 联系人
