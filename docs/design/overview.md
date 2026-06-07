@@ -10,9 +10,10 @@
 
 | 层 | 技术 |
 | --- | --- |
-| 后端 | Java 21、Spring Boot 3.4.5、MyBatis-Plus 3.5.7、MySQL 8、Flyway(数据库迁移)、Spring Security(仅 BCrypt)、Validation、Lombok、Actuator |
+| 后端 | Java 21、Spring Boot 3.4.5、MyBatis-Plus 3.5.7、PostgreSQL 16、Flyway(数据库迁移)、Spring Security(仅 BCrypt)、Validation、Lombok、Actuator |
 | 前端 | React 19、TypeScript、Vite、Ant Design 6、Zustand、React Router 7、axios、dayjs |
 | 契约 | OpenAPI 3.0.3 |
+| 测试 | JUnit 5 + Spring MockMvc(后端,真实 PostgreSQL)、swagger-parser(契约)、Vitest + Testing Library(前端) |
 
 ## 3. 总体架构
 
@@ -26,7 +27,7 @@ ai_store_manage/
 └── docs/           # 文档(本目录)
 ```
 
-数据流:前端(axios)→ `/api/*`(开发期 vite 代理到 :8080)→ Spring Boot Controller → Service → MyBatis-Plus Mapper → MySQL。
+数据流:前端(axios)→ `/api/*`(开发期 vite 代理到 :8080)→ Spring Boot Controller → Service → MyBatis-Plus Mapper → PostgreSQL(本地开发用 Docker 容器,端口 5433)。
 
 ## 4. 后端分层与包结构
 
@@ -63,13 +64,13 @@ ai_store_manage/
 - 启动自动迁移:应用启动时 Flyway 自动执行待应用的迁移,以 `flyway_schema_history` 表跟踪。
 - 兼容已有库:`baseline-on-migrate: true`——对"已有表但无 Flyway 历史"的库先建立基线(baseline)再迁移,避免首次报错;全新空库则直接执行 V1 建表灌种子。
 - 演进规则:**已发布的迁移文件不可修改**;新的 schema 变更一律新增递增版本 `V2__xxx.sql`、`V3__xxx.sql`……
-- 测试 profile(H2)关闭 Flyway(`spring.flyway.enabled: false`):迁移为 MySQL 方言,不在 H2 执行;`contextLoads` 不依赖建表。
+- 测试:后端集成测试连真实 PostgreSQL(dev 容器内独立库 `ai_store_test`),Flyway 在测试库上同样自动迁移;详见 [testing.md](testing.md)。
 - 注意:Flyway 负责"表",不负责"库";`ai_store_manage` 数据库本身需先存在。
 - 历史演进:早期用 `spring.sql.init` 跑幂等 `schema.sql`,现已改为 Flyway 版本化管理;背景与根因见 [features/department.md](../features/department.md) 的「问题分析」一节。
 
 ## 8. 开发流程规范
 
-详见项目根 [`CLAUDE.md`](../../CLAUDE.md)。核心七条:
+详见项目根 [`CLAUDE.md`](../../CLAUDE.md)。核心八条:
 
 1. 先 Contract,后 Backend,再 Frontend;
 2. 未验证不进入下一阶段;
@@ -77,9 +78,10 @@ ai_store_manage/
 4. 每阶段只改对应目录;
 5. 输出完整、可运行、可验证;
 6. 中文交流;
-7. 完成功能后输出 / 更新文档(本目录)。
+7. 完成功能后输出 / 更新文档(本目录);
+8. 完成功能后补测试用例并跑通(见 [testing.md](testing.md))。
 
 ## 9. 文档组织
 
-- `docs/design/` —— **总体设计**(本目录):系统级架构、技术栈、约定、流程。
+- `docs/design/` —— **总体设计**(本目录):系统级架构、技术栈、约定、流程,含 [测试指南 testing.md](testing.md)。
 - `docs/features/` —— **功能设计**:按模块拆分的数据模型、接口、设计决策与实现过程。

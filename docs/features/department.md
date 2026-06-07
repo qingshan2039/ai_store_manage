@@ -25,16 +25,16 @@
 
 | 字段 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- |
-| id | BIGINT | PK,自增 | 主键 |
-| name | VARCHAR(64) | 必填,唯一(uk_name_deleted) | 部门名称 |
-| code | VARCHAR(32) | 必填,唯一(uk_code_deleted),创建后不可改 | 部门编码 |
+| id | BIGSERIAL | PK,自增 | 主键 |
+| name | VARCHAR(64) | 必填,唯一(uk_dept_name_deleted) | 部门名称 |
+| code | VARCHAR(32) | 必填,唯一(uk_dept_code_deleted),创建后不可改 | 部门编码 |
 | type | VARCHAR(32) | 必填 | 部门类型(枚举名) |
-| status | TINYINT | 默认 1 | 0=禁用,1=启用 |
-| sort | INT | 默认 0 | 显示排序(升序) |
+| status | SMALLINT | 默认 1 | 0=禁用,1=启用 |
+| sort | INTEGER | 默认 0 | 显示排序(升序) |
 | remark | VARCHAR(500) | 可空 | 备注 |
-| created_at / updated_at | DATETIME | 自动填充 | 审计 |
+| created_at / updated_at | TIMESTAMP | 自动填充 | 审计 |
 | created_by / updated_by | BIGINT | 可空 | 审计 |
-| deleted | TINYINT(1) | 默认 0,`@TableLogic` | 逻辑删除 |
+| deleted | SMALLINT | 默认 0,`@TableLogic` | 逻辑删除 |
 
 唯一索引含 `deleted`,逻辑删除后可复用 name / code。
 
@@ -79,7 +79,7 @@
 
 ## 6. 数据库初始化（Flyway）
 
-部门建表与种子已纳入 Flyway 基线迁移 `api/src/main/resources/db/migration/V1__init_schema.sql`,应用启动时自动迁移(空库执行 V1,已有库走 baseline)。详见总体设计「[数据库初始化与迁移](../design/overview.md)」。
+数据库为 **PostgreSQL 16**(本项目由 MySQL 迁移而来;下方 §7 为 MySQL 时期的历史复盘)。部门建表与种子已纳入 Flyway 基线迁移 `api/src/main/resources/db/migration/V1__init_schema.sql`(PostgreSQL 方言),应用启动时自动迁移(空库执行 V1,已有库走 baseline)。详见总体设计「[数据库初始化与迁移](../design/overview.md)」。
 
 ## 7. 问题分析:任务结束后未自动创建 SQL 表
 
@@ -110,4 +110,12 @@
 - **后端 curl**:创建 201;详情/更新/状态 200;删除 204;删后 404;名称/编码重复 409;缺字段 400(3 字段);非法枚举 400;按类型筛选 total=1;被占用删除 409 `DEPARTMENT_IN_USE`。
 - **前端**:`tsc -b && vite build` 通过;vite 代理实拉 `total=8`,中文正确。
 - **自动建表**:`DROP` 后启动自动重建 8 条种子;重启幂等。
-- **Flyway**:已有库启动 → 建立基线(`flyway_schema_history` BASELINE 行),不动数据;全新空库启动 → 执行 `V1` 自动建表 + 8 条种子(`total=8`);测试 profile 关闭 Flyway,`contextLoads` 通过。
+- **Flyway**:已有库启动 → 建立基线(`flyway_schema_history` BASELINE 行),不动数据;全新空库启动 → 执行 `V1` 自动建表 + 8 条种子(`total=8`)。
+- **PostgreSQL 迁移**:应用与全部测试已在真实 PostgreSQL 16 上验证通过(BIGSERIAL 主键、SMALLINT/BOOLEAN/TIMESTAMP 映射、逻辑删除、POSTGRE_SQL 分页)。
+
+## 9. 测试
+
+- **后端**:`module/department/DepartmentControllerTest`(MockMvc + 真实 PostgreSQL),覆盖部门 CRUD 与 400/404/409 各分支,共 10 个用例;`cd api && mvn test`。
+- **契约**:`api-contract` 的 OpenAPI 校验断言部门 6 端点 + 8 类型齐全。
+- **前端**:`api/department.test.ts`(departmentApi 端点映射)、`constants/enums.test.ts`(8 类型 / 状态枚举)等;`cd web && npm test`。
+- 运行方式与前置条件见 [测试指南](../design/testing.md)。
