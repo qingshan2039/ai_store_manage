@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: AI Store Manage - 用户管理 API
+  title: AI Store Manage - 用户与部门管理 API
   description: |
-    WMS 仓储管理系统 — 用户模块 API 契约。
+    WMS 仓储管理系统 — 用户与部门模块 API 契约。
 
     本契约基于 `sys_user` 表字段设计，遵循 Contract First 原则，
     定义用户 CRUD、状态变更、密码重置等接口。
@@ -25,6 +25,8 @@ servers:
 tags:
   - name: 用户管理
     description: 用户 CRUD、状态管理、密码管理
+  - name: 部门管理
+    description: 部门 CRUD、状态管理（扁平结构，按类型分类）
 
 paths:
   /api/users:
@@ -361,12 +363,289 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ──────────────────────────────────────────────
+  # 部门管理接口
+  # ──────────────────────────────────────────────
+  /api/departments:
+    post:
+      tags:
+        - 部门管理
+      summary: 创建部门
+      description: |
+        创建新部门。`code` 部门编码创建后不可修改，全局唯一。
+        `type` 为部门类型枚举（仓管/运输/销售/生产/OFFICE/人事/财务/管理）。
+        创建成功后返回完整部门详情。
+      operationId: createDepartment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDepartmentRequest'
+      responses:
+        '201':
+          description: 部门创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '400':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validation_error:
+                  summary: 参数校验失败
+                  value:
+                    code: "VALIDATION_ERROR"
+                    message: "请求参数校验失败"
+                    details:
+                      - field: "name"
+                        message: "部门名称长度必须在2-64个字符之间"
+        '409':
+          description: 资源冲突（部门名称或编码已存在）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                name_conflict:
+                  summary: 部门名称已存在
+                  value:
+                    code: "DUPLICATE_DEPARTMENT_NAME"
+                    message: "部门名称已存在"
+                code_conflict:
+                  summary: 部门编码已存在
+                  value:
+                    code: "DUPLICATE_DEPARTMENT_CODE"
+                    message: "部门编码已存在"
+
+    get:
+      tags:
+        - 部门管理
+      summary: 查询部门列表
+      description: |
+        分页查询部门列表，支持按类型、状态筛选与关键词搜索。
+        `keyword` 可同时模糊匹配 `name`、`code`。列表按 `sort` 升序、`id` 升序排列。
+      operationId: listDepartments
+      parameters:
+        - name: keyword
+          in: query
+          description: 关键词搜索（模糊匹配部门名称、编码）
+          required: false
+          schema:
+            type: string
+            maxLength: 64
+            example: "仓"
+        - name: type
+          in: query
+          description: 部门类型筛选
+          required: false
+          schema:
+            $ref: '#/components/schemas/DepartmentType'
+        - name: status
+          in: query
+          description: 部门状态筛选（0=禁用，1=启用）
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+            example: 1
+        - name: page
+          in: query
+          description: 页码，从 1 开始
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: pageSize
+          in: query
+          description: 每页条数
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentListResponse'
+        '400':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/departments/{id}:
+    get:
+      tags:
+        - 部门管理
+      summary: 查询部门详情
+      description: 根据部门 ID 查询完整部门信息。
+      operationId: getDepartmentById
+      parameters:
+        - $ref: '#/components/parameters/DepartmentId'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '404':
+          description: 部门不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_found:
+                  summary: 部门不存在
+                  value:
+                    code: "DEPARTMENT_NOT_FOUND"
+                    message: "部门不存在"
+
+    put:
+      tags:
+        - 部门管理
+      summary: 更新部门信息
+      description: |
+        更新部门信息。`code` 部门编码创建后不可修改，不在此接口处理。
+        状态通过独立接口变更。更新成功后返回完整部门详情。
+      operationId: updateDepartment
+      parameters:
+        - $ref: '#/components/parameters/DepartmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDepartmentRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '400':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 部门不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 部门名称冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                name_conflict:
+                  summary: 部门名称已存在
+                  value:
+                    code: "DUPLICATE_DEPARTMENT_NAME"
+                    message: "部门名称已存在"
+
+    delete:
+      tags:
+        - 部门管理
+      summary: 删除部门
+      description: |
+        逻辑删除部门（将 `deleted` 标记为已删除）。
+        若该部门下仍有未删除的用户，禁止删除并返回 409。
+      operationId: deleteDepartment
+      parameters:
+        - $ref: '#/components/parameters/DepartmentId'
+      responses:
+        '204':
+          description: 删除成功（无返回内容）
+        '404':
+          description: 部门不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 部门下仍有用户，无法删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                in_use:
+                  summary: 部门正在使用
+                  value:
+                    code: "DEPARTMENT_IN_USE"
+                    message: "该部门下仍有用户，无法删除"
+
+  /api/departments/{id}/status:
+    patch:
+      tags:
+        - 部门管理
+      summary: 变更部门状态
+      description: 启用或禁用部门账号。独立接口设计，便于后续对接状态变更日志。
+      operationId: updateDepartmentStatus
+      parameters:
+        - $ref: '#/components/parameters/DepartmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDepartmentStatusRequest'
+      responses:
+        '200':
+          description: 状态变更成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '400':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 部门不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   parameters:
     UserId:
       name: id
       in: path
       description: 用户 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    DepartmentId:
+      name: id
+      in: path
+      description: 部门 ID
       required: true
       schema:
         type: integer
@@ -767,6 +1046,236 @@ components:
           type: integer
           description: 总页数
           example: 5
+
+    # ──────────────────────────────────────────────
+    # 部门相关 Schemas
+    # ──────────────────────────────────────────────
+
+    DepartmentType:
+      type: string
+      description: |
+        部门类型枚举：
+        - `WAREHOUSE` 仓管
+        - `TRANSPORT` 运输
+        - `SALES` 销售
+        - `PRODUCTION` 生产
+        - `OFFICE` 办公（Office）
+        - `HR` 人事
+        - `FINANCE` 财务
+        - `MANAGEMENT` 管理（管理层 / 老板层级）
+      enum:
+        - WAREHOUSE
+        - TRANSPORT
+        - SALES
+        - PRODUCTION
+        - OFFICE
+        - HR
+        - FINANCE
+        - MANAGEMENT
+      example: WAREHOUSE
+
+    CreateDepartmentRequest:
+      type: object
+      description: 创建部门请求体
+      required:
+        - name
+        - code
+        - type
+      properties:
+        name:
+          type: string
+          description: 部门名称（全局唯一）
+          minLength: 2
+          maxLength: 64
+          example: "一号仓库"
+        code:
+          type: string
+          description: 部门编码（创建后不可修改，全局唯一）
+          minLength: 2
+          maxLength: 32
+          pattern: '^[A-Za-z0-9\-]+$'
+          example: "WH-01"
+        type:
+          allOf:
+            - $ref: '#/components/schemas/DepartmentType'
+          description: 部门类型
+        sort:
+          type: integer
+          description: 显示排序（升序，越小越靠前）
+          default: 0
+          example: 1
+        remark:
+          type: string
+          description: 备注
+          maxLength: 500
+          example: "主仓库，存放快消品"
+        status:
+          type: integer
+          description: "部门状态：0=禁用，1=启用"
+          enum: [0, 1]
+          default: 1
+          example: 1
+
+    UpdateDepartmentRequest:
+      type: object
+      description: |
+        更新部门请求体。所有字段均为可选，仅传入需要修改的字段。
+        `code` 创建后不可修改，不出现在此请求中；状态通过独立接口变更。
+      properties:
+        name:
+          type: string
+          description: 部门名称（全局唯一）
+          minLength: 2
+          maxLength: 64
+          example: "一号仓库"
+        type:
+          allOf:
+            - $ref: '#/components/schemas/DepartmentType'
+          description: 部门类型
+        sort:
+          type: integer
+          description: 显示排序（升序，越小越靠前）
+          example: 2
+        remark:
+          type: string
+          description: 备注
+          maxLength: 500
+          example: "已扩容，新增冷链区"
+
+    UpdateDepartmentStatusRequest:
+      type: object
+      description: 变更部门状态请求体
+      required:
+        - status
+      properties:
+        status:
+          type: integer
+          description: "部门状态：0=禁用，1=启用"
+          enum: [0, 1]
+          example: 0
+
+    Department:
+      type: object
+      description: |
+        部门详情响应体。包含部门完整信息，用于详情查看和编辑回显。
+        注意：`deleted` 永不出现在响应中。
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 部门 ID
+          example: 1
+        name:
+          type: string
+          description: 部门名称
+          example: "一号仓库"
+        code:
+          type: string
+          description: 部门编码
+          example: "WH-01"
+        type:
+          allOf:
+            - $ref: '#/components/schemas/DepartmentType'
+          description: 部门类型
+        status:
+          type: integer
+          description: "部门状态：0=禁用，1=启用"
+          enum: [0, 1]
+          example: 1
+        sort:
+          type: integer
+          description: 显示排序
+          example: 1
+        remark:
+          type: string
+          description: 备注
+          nullable: true
+          example: "主仓库，存放快消品"
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2026-04-22T10:00:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: "2026-04-22T10:00:00"
+        createdBy:
+          type: integer
+          format: int64
+          description: 创建人 ID
+          nullable: true
+          example: 1
+        updatedBy:
+          type: integer
+          format: int64
+          description: 更新人 ID
+          nullable: true
+          example: 1
+
+    DepartmentSummary:
+      type: object
+      description: 部门摘要响应体，用于列表展示。
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 部门 ID
+          example: 1
+        name:
+          type: string
+          description: 部门名称
+          example: "一号仓库"
+        code:
+          type: string
+          description: 部门编码
+          example: "WH-01"
+        type:
+          allOf:
+            - $ref: '#/components/schemas/DepartmentType'
+          description: 部门类型
+        status:
+          type: integer
+          description: "部门状态：0=禁用，1=启用"
+          enum: [0, 1]
+          example: 1
+        sort:
+          type: integer
+          description: 显示排序
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2026-04-22T10:00:00"
+
+    DepartmentListResponse:
+      type: object
+      description: 部门列表分页响应体
+      properties:
+        items:
+          type: array
+          description: 部门列表数据
+          items:
+            $ref: '#/components/schemas/DepartmentSummary'
+        total:
+          type: integer
+          format: int64
+          description: 总记录数
+          example: 8
+        page:
+          type: integer
+          description: 当前页码
+          example: 1
+        pageSize:
+          type: integer
+          description: 每页条数
+          example: 20
+        totalPages:
+          type: integer
+          description: 总页数
+          example: 1
 
     # ──────────────────────────────────────────────
     # 错误响应 Schema
