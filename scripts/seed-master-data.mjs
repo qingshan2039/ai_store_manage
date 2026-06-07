@@ -57,6 +57,27 @@ async function ensureSku(sku) {
   console.log(`  ${created.__duplicate ? '=' : '+'} SKU：${sku.skuCode} ${sku.skuName}`);
 }
 
+/** POST，遇 409/404 不报错（返回 null）。 */
+async function postSoft(path, body) {
+  const res = await fetch(BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (res.status === 201) return res.json();
+  if (res.status === 409 || res.status === 404) return null;
+  throw new Error(`POST ${path} -> ${res.status}: ${await res.text()}`);
+}
+
+/** GET 列表全部 items（keyword 可选）。 */
+async function listItems(path, keyword) {
+  const q = keyword ? `${path}${path.includes('?') ? '&' : '?'}keyword=${encodeURIComponent(keyword)}&pageSize=100` : `${path}${path.includes('?') ? '&' : '?'}pageSize=100`;
+  const data = await (await fetch(BASE + q)).json();
+  return data.items || [];
+}
+
+/** 按某字段在列表中查一条。 */
+async function findByField(path, field, value, keyword) {
+  const items = await listItems(path, keyword ?? value);
+  return items.find((it) => it[field] === value) || null;
+}
+
 async function main() {
   console.log('▶ 供应商');
   const suppliers = [
@@ -141,6 +162,39 @@ async function main() {
     const spu = await ensureSpu(c.spu);
     if (!spu) continue;
     for (const s of c.skus) await ensureSku({ ...s, spuId: spu.id });
+  }
+
+  // ── 需求②演示（Phase B/C）：纸管 PC-340480-A 的包装链 + 库位 + 两托（500整托 / 480尾托）──
+  console.log('▶ 库存统计演示（需求②：500 整托 + 480 尾托）');
+  const demoSku = await findByField('/api/skus', 'skuCode', 'PC-340480-A');
+  const whRaw = await findByField('/api/warehouses', 'code', 'WH-RAW');
+  const pltL = await findByField('/api/pallet-types', 'code', 'PLT-L');
+  if (demoSku && whRaw && pltL) {
+    // 包装层级 卷/箱/托 + 关系 托→箱 500
+    await postSoft('/api/packaging-levels', { skuId: demoSku.id, levelName: '卷', levelSeq: 1, unitCode: 'ROLL', isBaseUnit: 1 });
+    await postSoft('/api/packaging-levels', { skuId: demoSku.id, levelName: '箱', levelSeq: 2, unitCode: 'CTN' });
+    await postSoft('/api/packaging-levels', { skuId: demoSku.id, levelName: '托', levelSeq: 3, unitCode: 'PLT' });
+    const levels = await listItems(`/api/packaging-levels?skuId=${demoSku.id}`);
+    const box = levels.find((l) => l.levelName === '箱');
+    const plt = levels.find((l) => l.levelName === '托');
+    if (box && plt) await postSoft('/api/packaging-relations', { parentLevelId: plt.id, childLevelId: box.id, childQty: 500, isFixedQty: 1 });
+    // 库位 + 两个托盘
+    await postSoft('/api/locations', { warehouseId: whRaw.id, code: 'A-01-01', locType: '货架' });
+    await postSoft('/api/lpns', { lpnCode: 'SSCC-DEMO-1', palletTypeId: pltL.id, warehouseId: whRaw.id });
+    await postSoft('/api/lpns', { lpnCode: 'SSCC-DEMO-2', palletTypeId: pltL.id, warehouseId: whRaw.id });
+    const lpn1 = await findByField('/api/lpns', 'lpnCode', 'SSCC-DEMO-1');
+    const lpn2 = await findByField('/api/lpns', 'lpnCode', 'SSCC-DEMO-2');
+    // 库存无唯一约束，已存在则跳过，避免重复
+    const existing = await listItems(`/api/inventory?skuId=${demoSku.id}`);
+    if (existing.length === 0 && lpn1 && lpn2) {
+      await post('/api/inventory', { skuId: demoSku.id, lpnId: lpn1.id, qtyOnHand: 500 });
+      await post('/api/inventory', { skuId: demoSku.id, lpnId: lpn2.id, qtyOnHand: 480 });
+      console.log('  + 库存：SSCC-DEMO-1=500(整托), SSCC-DEMO-2=480(尾托)');
+    } else {
+      console.log(`  = 库存已存在(${existing.length} 条)，跳过`);
+    }
+  } else {
+    console.log('  ! 缺少 SKU/仓库/托盘类型，跳过演示');
   }
 
   console.log('\n✓ 主数据灌入完成');
