@@ -37,6 +37,12 @@ tags:
     description: 库区 CRUD、状态管理（隶属仓库）
   - name: 托盘类型管理
     description: 托盘类型 CRUD、状态管理（ISO 规格）
+  - name: 物料品类管理
+    description: 物料品类（纸皮/铝箔/纸管/保鲜膜/烘焙纸…）CRUD、状态管理
+  - name: 物料SPU管理
+    description: 标准产品单元 SPU CRUD、状态管理（品类层）
+  - name: 物料SKU管理
+    description: 最小库存单元 SKU CRUD、状态管理（含 item_type、结构化尺寸、jsonb 规格）
 
 paths:
   /api/users:
@@ -1168,6 +1174,225 @@ paths:
         '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletType' } } } }
         '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  # ── 物料品类管理 ──
+  /api/material-categories:
+    post:
+      tags: [物料品类管理]
+      summary: 创建物料品类
+      operationId: createMaterialCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateMaterialCategoryRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/MaterialCategory' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [物料品类管理]
+      summary: 查询物料品类列表
+      operationId: listMaterialCategories
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/MaterialCategoryListResponse' } } } }
+  /api/material-categories/{id}:
+    get:
+      tags: [物料品类管理]
+      summary: 查询物料品类详情
+      operationId: getMaterialCategoryById
+      parameters: [ { $ref: '#/components/parameters/MaterialCategoryId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/MaterialCategory' } } } }
+        '404': { description: 品类不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [物料品类管理]
+      summary: 更新物料品类
+      operationId: updateMaterialCategory
+      parameters: [ { $ref: '#/components/parameters/MaterialCategoryId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMaterialCategoryRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/MaterialCategory' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [物料品类管理]
+      summary: 删除物料品类
+      operationId: deleteMaterialCategory
+      parameters: [ { $ref: '#/components/parameters/MaterialCategoryId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/material-categories/{id}/status:
+    patch:
+      tags: [物料品类管理]
+      summary: 变更物料品类状态
+      operationId: updateMaterialCategoryStatus
+      parameters: [ { $ref: '#/components/parameters/MaterialCategoryId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/MaterialCategory' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 物料SPU管理 ──
+  /api/spus:
+    post:
+      tags: [物料SPU管理]
+      summary: 创建 SPU
+      operationId: createSpu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSpuRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Spu' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [物料SPU管理]
+      summary: 查询 SPU 列表
+      operationId: listSpus
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: categoryCode, in: query, required: false, schema: { type: string, maxLength: 32 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/SpuListResponse' } } } }
+  /api/spus/{id}:
+    get:
+      tags: [物料SPU管理]
+      summary: 查询 SPU 详情
+      operationId: getSpuById
+      parameters: [ { $ref: '#/components/parameters/SpuId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Spu' } } } }
+        '404': { description: SPU 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [物料SPU管理]
+      summary: 更新 SPU
+      operationId: updateSpu
+      parameters: [ { $ref: '#/components/parameters/SpuId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSpuRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Spu' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [物料SPU管理]
+      summary: 删除 SPU
+      operationId: deleteSpu
+      parameters: [ { $ref: '#/components/parameters/SpuId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/spus/{id}/status:
+    patch:
+      tags: [物料SPU管理]
+      summary: 变更 SPU 状态
+      operationId: updateSpuStatus
+      parameters: [ { $ref: '#/components/parameters/SpuId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Spu' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 物料SKU管理 ──
+  /api/skus:
+    post:
+      tags: [物料SKU管理]
+      summary: 创建 SKU
+      operationId: createSku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSkuRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [物料SKU管理]
+      summary: 查询 SKU 列表
+      operationId: listSkus
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: spuId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: itemType, in: query, required: false, schema: { $ref: '#/components/schemas/ItemType' } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/SkuListResponse' } } } }
+  /api/skus/{id}:
+    get:
+      tags: [物料SKU管理]
+      summary: 查询 SKU 详情
+      operationId: getSkuById
+      parameters: [ { $ref: '#/components/parameters/SkuId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
+        '404': { description: SKU 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [物料SKU管理]
+      summary: 更新 SKU
+      operationId: updateSku
+      parameters: [ { $ref: '#/components/parameters/SkuId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSkuRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [物料SKU管理]
+      summary: 删除 SKU
+      operationId: deleteSku
+      parameters: [ { $ref: '#/components/parameters/SkuId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/skus/{id}/status:
+    patch:
+      tags: [物料SKU管理]
+      summary: 变更 SKU 状态
+      operationId: updateSkuStatus
+      parameters: [ { $ref: '#/components/parameters/SkuId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
 components:
   parameters:
     UserId:
@@ -1234,6 +1459,36 @@ components:
       name: id
       in: path
       description: 托盘类型 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    MaterialCategoryId:
+      name: id
+      in: path
+      description: 物料品类 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    SpuId:
+      name: id
+      in: path
+      description: SPU ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    SkuId:
+      name: id
+      in: path
+      description: SKU ID
       required: true
       schema:
         type: integer
@@ -2406,6 +2661,184 @@ components:
       type: object
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/PalletTypeSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # ──────────────────────────────────────────────
+    # 物料目录 Schema（品类 / SPU / SKU）
+    # ──────────────────────────────────────────────
+    ItemType:
+      type: string
+      enum: [RAW, SEMI, FINISHED]
+      description: 物料阶段类型 原料/半成品/成品
+
+    # 品类
+    CreateMaterialCategoryRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "CORE" }
+        name: { type: string, minLength: 1, maxLength: 64, example: "纸管" }
+        sortOrder: { type: integer, default: 0, description: 排序值（小在前） }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateMaterialCategoryRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        sortOrder: { type: integer }
+    MaterialCategory:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        sortOrder: { type: integer }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    MaterialCategorySummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        sortOrder: { type: integer }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    MaterialCategoryListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/MaterialCategorySummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # SPU（标准产品单元 / 物料主，品类层）
+    CreateSpuRequest:
+      type: object
+      required: [spuCode, spuName, categoryCode, baseUnit]
+      properties:
+        spuCode: { type: string, minLength: 2, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "CORE-3IN" }
+        spuName: { type: string, minLength: 1, maxLength: 128, example: "3寸纸管" }
+        categoryCode: { type: string, minLength: 1, maxLength: 32, description: 所属品类编码, example: "CORE" }
+        brand: { type: string, maxLength: 64, nullable: true }
+        baseUnit: { type: string, minLength: 1, maxLength: 16, description: 基本单位 PCS/ROLL/张…, example: "PCS" }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateSpuRequest:
+      type: object
+      properties:
+        spuName: { type: string, minLength: 1, maxLength: 128 }
+        categoryCode: { type: string, minLength: 1, maxLength: 32 }
+        brand: { type: string, maxLength: 64 }
+        baseUnit: { type: string, minLength: 1, maxLength: 16 }
+    Spu:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuCode: { type: string }
+        spuName: { type: string }
+        categoryCode: { type: string }
+        categoryName: { type: string, nullable: true, description: 品类名称（关联查询） }
+        brand: { type: string, nullable: true }
+        baseUnit: { type: string }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    SpuSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuCode: { type: string }
+        spuName: { type: string }
+        categoryCode: { type: string }
+        categoryName: { type: string, nullable: true }
+        baseUnit: { type: string }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    SpuListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/SpuSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # SKU（最小库存单元）
+    CreateSkuRequest:
+      type: object
+      required: [spuId, skuCode, skuName, itemType]
+      properties:
+        spuId: { type: integer, format: int64, description: 所属 SPU }
+        skuCode: { type: string, minLength: 2, maxLength: 48, pattern: '^[A-Za-z0-9\-]+$', example: "PC-340480-A" }
+        skuName: { type: string, minLength: 1, maxLength: 128, example: "纸管 340x480x5mm 规格A" }
+        itemType: { $ref: '#/components/schemas/ItemType' }
+        lengthMm: { type: number, nullable: true, description: 长(mm) }
+        widthMm: { type: number, nullable: true, description: 宽(mm) }
+        thicknessMm: { type: number, nullable: true, description: 厚(mm) }
+        rollLengthM: { type: number, nullable: true, description: 卷长(m，膜类) }
+        color: { type: string, maxLength: 32, nullable: true }
+        gsm: { type: number, nullable: true, description: 克重(g/m²) }
+        spec: { type: object, additionalProperties: true, nullable: true, description: 同尺寸下的细分规格（材质/牌号/工艺等），存 jsonb }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateSkuRequest:
+      type: object
+      properties:
+        skuName: { type: string, minLength: 1, maxLength: 128 }
+        itemType: { $ref: '#/components/schemas/ItemType' }
+        lengthMm: { type: number }
+        widthMm: { type: number }
+        thicknessMm: { type: number }
+        rollLengthM: { type: number }
+        color: { type: string, maxLength: 32 }
+        gsm: { type: number }
+        spec: { type: object, additionalProperties: true }
+    Sku:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuId: { type: integer, format: int64 }
+        spuCode: { type: string, nullable: true, description: 所属 SPU 编码（关联查询） }
+        spuName: { type: string, nullable: true, description: 所属 SPU 名称（关联查询） }
+        skuCode: { type: string }
+        skuName: { type: string }
+        itemType: { $ref: '#/components/schemas/ItemType' }
+        lengthMm: { type: number, nullable: true }
+        widthMm: { type: number, nullable: true }
+        thicknessMm: { type: number, nullable: true }
+        rollLengthM: { type: number, nullable: true }
+        color: { type: string, nullable: true }
+        gsm: { type: number, nullable: true }
+        spec: { type: object, additionalProperties: true, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    SkuSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuId: { type: integer, format: int64 }
+        spuName: { type: string, nullable: true }
+        skuCode: { type: string }
+        skuName: { type: string }
+        itemType: { $ref: '#/components/schemas/ItemType' }
+        lengthMm: { type: number, nullable: true }
+        widthMm: { type: number, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    SkuListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/SkuSummary' } }
         total: { type: integer, format: int64 }
         page: { type: integer }
         pageSize: { type: integer }

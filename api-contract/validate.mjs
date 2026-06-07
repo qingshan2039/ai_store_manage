@@ -33,7 +33,20 @@ const REQUIRED_OPERATIONS = [
   ['get', '/api/zones', 'listZones'],
   ['post', '/api/pallet-types', 'createPalletType'],
   ['get', '/api/pallet-types', 'listPalletTypes'],
+  ['post', '/api/material-categories', 'createMaterialCategory'],
+  ['get', '/api/material-categories', 'listMaterialCategories'],
+  ['post', '/api/spus', 'createSpu'],
+  ['get', '/api/spus', 'listSpus'],
+  ['post', '/api/skus', 'createSku'],
+  ['get', '/api/skus', 'listSkus'],
+  ['get', '/api/skus/{id}', 'getSkuById'],
+  ['put', '/api/skus/{id}', 'updateSku'],
+  ['delete', '/api/skus/{id}', 'deleteSku'],
+  ['patch', '/api/skus/{id}/status', 'updateSkuStatus'],
 ];
+
+/** SKU item_type 枚举（原料/半成品/成品） */
+const EXPECTED_ITEM_TYPES = ['RAW', 'SEMI', 'FINISHED'];
 
 function fail(msg) {
   console.error('✗ ' + msg);
@@ -57,6 +70,12 @@ const deptTypeEnum = api.components?.schemas?.DepartmentType?.enum ?? [];
 const EXPECTED_TYPES = ['WAREHOUSE', 'TRANSPORT', 'SALES', 'PRODUCTION', 'OFFICE', 'HR', 'FINANCE', 'MANAGEMENT'];
 for (const t of EXPECTED_TYPES) {
   if (!deptTypeEnum.includes(t)) fail(`DepartmentType 枚举缺少 ${t}`);
+}
+
+// 4) 物料 item_type 枚举完整（3 类）
+const itemTypeEnum = api.components?.schemas?.ItemType?.enum ?? [];
+for (const t of EXPECTED_ITEM_TYPES) {
+  if (!itemTypeEnum.includes(t)) fail(`ItemType 枚举缺少 ${t}`);
 }
 
 const paths = Object.keys(api.paths ?? {}).length;
