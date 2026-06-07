@@ -77,9 +77,9 @@
 - 镜像用户模块:`types/department.ts`、`api/department.ts`、`pages/department/`(列表页 + 新增/编辑弹窗 + 搜索表单),并接入菜单 / 路由 / 面包屑 / enums。
 - 验证:`tsc -b && vite build` 通过;经 vite 代理(:3000 → :8080)真实拉到后端数据。
 
-## 6. 数据库初始化
+## 6. 数据库初始化（Flyway）
 
-`schema.sql` 幂等 + `spring.sql.init` 启动自动建表灌种子。详见总体设计「[数据库初始化策略](../design/overview.md#7-数据库初始化策略)」。
+部门建表与种子已纳入 Flyway 基线迁移 `api/src/main/resources/db/migration/V1__init_schema.sql`,应用启动时自动迁移(空库执行 V1,已有库走 baseline)。详见总体设计「[数据库初始化与迁移](../design/overview.md)」。
 
 ## 7. 问题分析:任务结束后未自动创建 SQL 表
 
@@ -97,15 +97,17 @@
 - 将 `schema.sql` 改为**幂等**:`CREATE TABLE IF NOT EXISTS` + `INSERT IGNORE`。
 - 开启 `spring.sql.init.mode=always`(测试 profile 关闭),启动时自动执行:缺表自动建表 + 灌种子,有表为无害空操作,不丢数据。
 - 验证:手动 `DROP TABLE sys_department` 后启动应用 → 表被自动重建、8 条种子、中文正确、`total=8`,且 `sys_user` 未受影响;重启幂等(仍 8 行,无重复、无报错);测试 `contextLoads` 仍通过。
+- 后续升级:该自动初始化已进一步演进为 **Flyway 版本化迁移**(见 §6 与总体设计),`schema.sql` 已被 `db/migration/V1__init_schema.sql` 取代。
 
 ### 经验
 - "功能完成"应包含"数据库 schema 可被自动 / 可重复初始化",而非依赖隐性人工步骤。
 - 验证应覆盖"全新环境(空库启动)"路径,而不仅是"我本地已备好的库"。
 - 文档须记录 DB 初始化方式(已在本目录与总体设计中记录)。
-- 随项目演进,建议引入版本化迁移工具(Flyway)管理 schema 变更。
+- ✅ 已落实:引入 **Flyway** 版本化迁移(`db/migration/`)统一管理 schema,取代启动跑 `schema.sql`;后续变更走递增 `V2+` 迁移。
 
 ## 8. 验证记录(摘要)
 
 - **后端 curl**:创建 201;详情/更新/状态 200;删除 204;删后 404;名称/编码重复 409;缺字段 400(3 字段);非法枚举 400;按类型筛选 total=1;被占用删除 409 `DEPARTMENT_IN_USE`。
 - **前端**:`tsc -b && vite build` 通过;vite 代理实拉 `total=8`,中文正确。
 - **自动建表**:`DROP` 后启动自动重建 8 条种子;重启幂等。
+- **Flyway**:已有库启动 → 建立基线(`flyway_schema_history` BASELINE 行),不动数据;全新空库启动 → 执行 `V1` 自动建表 + 8 条种子(`total=8`);测试 profile 关闭 Flyway,`contextLoads` 通过。

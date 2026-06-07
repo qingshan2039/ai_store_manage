@@ -55,6 +55,16 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flyway 数据库迁移（版本化 SQL 管理）-->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
         <!-- MyBatis-Plus Spring Boot 3 Starter -->
         <dependency>
             <groupId>com.baomidou</groupId>

@@ -10,7 +10,7 @@
 
 | 层 | 技术 |
 | --- | --- |
-| 后端 | Java 21、Spring Boot 3.4.5、MyBatis-Plus 3.5.7、MySQL 8、Spring Security(仅 BCrypt)、Validation、Lombok、Actuator |
+| 后端 | Java 21、Spring Boot 3.4.5、MyBatis-Plus 3.5.7、MySQL 8、Flyway(数据库迁移)、Spring Security(仅 BCrypt)、Validation、Lombok、Actuator |
 | 前端 | React 19、TypeScript、Vite、Ant Design 6、Zustand、React Router 7、axios、dayjs |
 | 契约 | OpenAPI 3.0.3 |
 
@@ -57,13 +57,15 @@ ai_store_manage/
 - **状态枚举**:`status` 0=禁用、1=启用。
 - **敏感字段**:`password`、`deleted` 永不出现在响应中。
 
-## 7. 数据库初始化策略
+## 7. 数据库初始化与迁移（Flyway）
 
-- 建表与种子脚本:[`api/src/main/resources/db/schema.sql`](../../api/src/main/resources/db/schema.sql),**幂等**(`CREATE TABLE IF NOT EXISTS` + `INSERT IGNORE`)。
-- 启动自动初始化:`spring.sql.init.mode=always` + `schema-locations=classpath:db/schema.sql`,应用启动时确保表与种子存在——缺表自动创建,有表为无害空操作,不丢数据。
-- 测试 profile(H2)关闭自动初始化(`mode: never`),避免在 H2 上执行 MySQL 方言脚本。
-- 注意:自动初始化负责"表",不负责"库";`ai_store_manage` 数据库本身需先存在。
-- 该策略的背景与根因分析见 [features/department.md](../features/department.md) 的「问题分析」一节。
+- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子。
+- 启动自动迁移:应用启动时 Flyway 自动执行待应用的迁移,以 `flyway_schema_history` 表跟踪。
+- 兼容已有库:`baseline-on-migrate: true`——对"已有表但无 Flyway 历史"的库先建立基线(baseline)再迁移,避免首次报错;全新空库则直接执行 V1 建表灌种子。
+- 演进规则:**已发布的迁移文件不可修改**;新的 schema 变更一律新增递增版本 `V2__xxx.sql`、`V3__xxx.sql`……
+- 测试 profile(H2)关闭 Flyway(`spring.flyway.enabled: false`):迁移为 MySQL 方言,不在 H2 执行;`contextLoads` 不依赖建表。
+- 注意:Flyway 负责"表",不负责"库";`ai_store_manage` 数据库本身需先存在。
+- 历史演进:早期用 `spring.sql.init` 跑幂等 `schema.sql`,现已改为 Flyway 版本化管理;背景与根因见 [features/department.md](../features/department.md) 的「问题分析」一节。
 
 ## 8. 开发流程规范
 

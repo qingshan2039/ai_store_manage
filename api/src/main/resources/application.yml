@@ -5,12 +5,11 @@ spring:
   application:
     name: ai-store-manage-api
 
-  # SQL 自动初始化：启动时执行 schema.sql（幂等：CREATE TABLE IF NOT EXISTS + INSERT IGNORE）
-  # 缺表时自动建表并灌入种子，有表时为无害空操作，不会丢失数据
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:db/schema.sql
+  # Flyway 数据库迁移：启动时按 classpath:db/migration 下的版本化脚本自动建表 / 演进
+  # baseline-on-migrate：对“已有表但无 Flyway 历史”的库先建立基线再迁移，避免首次报错
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
 
   # MySQL DataSource
   datasource:

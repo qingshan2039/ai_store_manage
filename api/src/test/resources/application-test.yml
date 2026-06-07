@@ -1,8 +1,7 @@
 spring:
-  # 测试环境禁用 SQL 自动初始化：schema.sql 为 MySQL 方言，不在 H2 上执行
-  sql:
-    init:
-      mode: never
+  # 测试环境禁用 Flyway：迁移脚本为 MySQL 方言，不在 H2 上执行
+  flyway:
+    enabled: false
 
   # 使用 H2 内存数据库，替代 MySQL，保证 CI/单元测试无需真实数据库连接
   datasource:

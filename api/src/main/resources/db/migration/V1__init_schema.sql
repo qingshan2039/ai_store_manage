@@ -1,16 +1,14 @@
 -- ============================================================
--- AI Store Manage - 用户管理模块建表 SQL
--- 数据库: MySQL 8.x
--- 字符集: utf8mb4
--- 排序规则: utf8mb4_general_ci
+-- Flyway 基线迁移 V1：初始 schema
+-- AI Store Manage - 用户表 + 部门表 + 部门种子数据
+-- 数据库: MySQL 8.x / 字符集: utf8mb4 / 排序: utf8mb4_general_ci
+--
+-- 说明：
+--   本迁移代表项目引入 Flyway 时的“当前完整 schema”基线。
+--   对已存在这些表但无 Flyway 历史的库，借助 baseline-on-migrate 建立基线（本脚本不会重复执行）；
+--   对全新空库，本脚本负责建表与灌入部门种子。
+--   今后的 schema 变更请新增 V2__xxx.sql、V3__xxx.sql 等递增迁移，禁止修改已发布的迁移文件。
 -- ============================================================
-
--- 创建数据库（如不存在）
-CREATE DATABASE IF NOT EXISTS ai_store_manage
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_general_ci;
-
-USE ai_store_manage;
 
 -- ============================================================
 -- 表: sys_user
@@ -68,9 +66,6 @@ CREATE TABLE IF NOT EXISTS sys_user (
 -- 表: sys_department
 -- 说明: 部门表，扁平结构，按类型（DepartmentType）分类
 -- ============================================================
--- 确保中文按 utf8mb4 写入，避免客户端默认字符集导致种子数据乱码
-SET NAMES utf8mb4;
-
 CREATE TABLE IF NOT EXISTS sys_department (
     -- 基础字段
     id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
@@ -106,7 +101,7 @@ CREATE TABLE IF NOT EXISTS sys_department (
   COLLATE=utf8mb4_general_ci
   COMMENT='部门表';
 
--- 初始化部门数据（8 类：7 个业务部门 + 管理层）；INSERT IGNORE 保证可重复执行不报错、不重复
+-- 初始化部门数据（8 类：7 个业务部门 + 管理层）；INSERT IGNORE 保证基线/全新库执行均不重复、不报错
 INSERT IGNORE INTO sys_department (name, code, type, status, sort, remark) VALUES
     ('仓储管理部', 'WH',    'WAREHOUSE',  1, 1, '负责仓库收发存管理'),
     ('运输部',     'TRANS', 'TRANSPORT',  1, 2, '负责物流配送与运输'),
