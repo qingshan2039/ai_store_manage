@@ -43,6 +43,16 @@ tags:
     description: 标准产品单元 SPU CRUD、状态管理（品类层）
   - name: 物料SKU管理
     description: 最小库存单元 SKU CRUD、状态管理（含 item_type、结构化尺寸、jsonb 规格）
+  - name: 包装层级管理
+    description: SKU 多级包装（卷/箱/托）CRUD、状态管理
+  - name: 包装关系管理
+    description: 父层含子层数量（每托 500/480、12/16/18），is_fixed_qty 标识整托
+  - name: 条码管理
+    description: 包装层条码（EAN13/ITF14/SSCC）CRUD、状态管理
+  - name: 计量换算管理
+    description: SKU 单位换算（如 卷↔平方米）CRUD、状态管理
+  - name: 物料图片管理
+    description: SPU/SKU/包装层图片（URL）CRUD、状态管理
 
 paths:
   /api/users:
@@ -1393,6 +1403,338 @@ paths:
         '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
         '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  # ── 包装层级管理 ──
+  /api/packaging-levels:
+    post:
+      tags: [包装层级管理]
+      summary: 创建包装层级
+      operationId: createPackagingLevel
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreatePackagingLevelRequest' } } }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingLevel' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: SKU 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [包装层级管理]
+      summary: 查询包装层级列表
+      operationId: listPackagingLevels
+      parameters:
+        - { name: skuId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingLevelListResponse' } } } }
+  /api/packaging-levels/{id}:
+    get:
+      tags: [包装层级管理]
+      summary: 查询包装层级详情
+      operationId: getPackagingLevelById
+      parameters: [ { $ref: '#/components/parameters/PackagingLevelId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingLevel' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [包装层级管理]
+      summary: 更新包装层级
+      operationId: updatePackagingLevel
+      parameters: [ { $ref: '#/components/parameters/PackagingLevelId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdatePackagingLevelRequest' } } }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingLevel' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [包装层级管理]
+      summary: 删除包装层级
+      operationId: deletePackagingLevel
+      parameters: [ { $ref: '#/components/parameters/PackagingLevelId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/packaging-levels/{id}/status:
+    patch:
+      tags: [包装层级管理]
+      summary: 变更包装层级状态
+      operationId: updatePackagingLevelStatus
+      parameters: [ { $ref: '#/components/parameters/PackagingLevelId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateStatusRequest' } } }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingLevel' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 包装关系管理 ──
+  /api/packaging-relations:
+    post:
+      tags: [包装关系管理]
+      summary: 创建包装关系
+      operationId: createPackagingRelation
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreatePackagingRelationRequest' } } }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingRelation' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 层级不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [包装关系管理]
+      summary: 查询包装关系列表
+      operationId: listPackagingRelations
+      parameters:
+        - { name: parentLevelId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingRelationListResponse' } } } }
+  /api/packaging-relations/{id}:
+    get:
+      tags: [包装关系管理]
+      summary: 查询包装关系详情
+      operationId: getPackagingRelationById
+      parameters: [ { $ref: '#/components/parameters/PackagingRelationId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingRelation' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [包装关系管理]
+      summary: 更新包装关系
+      operationId: updatePackagingRelation
+      parameters: [ { $ref: '#/components/parameters/PackagingRelationId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdatePackagingRelationRequest' } } }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingRelation' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [包装关系管理]
+      summary: 删除包装关系
+      operationId: deletePackagingRelation
+      parameters: [ { $ref: '#/components/parameters/PackagingRelationId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/packaging-relations/{id}/status:
+    patch:
+      tags: [包装关系管理]
+      summary: 变更包装关系状态
+      operationId: updatePackagingRelationStatus
+      parameters: [ { $ref: '#/components/parameters/PackagingRelationId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateStatusRequest' } } }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/PackagingRelation' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 条码管理 ──
+  /api/barcodes:
+    post:
+      tags: [条码管理]
+      summary: 创建条码
+      operationId: createBarcode
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateBarcodeRequest' } } }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Barcode' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 条码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [条码管理]
+      summary: 查询条码列表
+      operationId: listBarcodes
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 64 } }
+        - { name: levelId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/BarcodeListResponse' } } } }
+  /api/barcodes/{id}:
+    get:
+      tags: [条码管理]
+      summary: 查询条码详情
+      operationId: getBarcodeById
+      parameters: [ { $ref: '#/components/parameters/BarcodeId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Barcode' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [条码管理]
+      summary: 更新条码
+      operationId: updateBarcode
+      parameters: [ { $ref: '#/components/parameters/BarcodeId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateBarcodeRequest' } } }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Barcode' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [条码管理]
+      summary: 删除条码
+      operationId: deleteBarcode
+      parameters: [ { $ref: '#/components/parameters/BarcodeId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/barcodes/{id}/status:
+    patch:
+      tags: [条码管理]
+      summary: 变更条码状态
+      operationId: updateBarcodeStatus
+      parameters: [ { $ref: '#/components/parameters/BarcodeId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateStatusRequest' } } }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Barcode' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 计量换算管理 ──
+  /api/unit-conversions:
+    post:
+      tags: [计量换算管理]
+      summary: 创建计量换算
+      operationId: createUnitConversion
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateUnitConversionRequest' } } }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/UnitConversion' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: SKU 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [计量换算管理]
+      summary: 查询计量换算列表
+      operationId: listUnitConversions
+      parameters:
+        - { name: skuId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/UnitConversionListResponse' } } } }
+  /api/unit-conversions/{id}:
+    get:
+      tags: [计量换算管理]
+      summary: 查询计量换算详情
+      operationId: getUnitConversionById
+      parameters: [ { $ref: '#/components/parameters/UnitConversionId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/UnitConversion' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [计量换算管理]
+      summary: 更新计量换算
+      operationId: updateUnitConversion
+      parameters: [ { $ref: '#/components/parameters/UnitConversionId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateUnitConversionRequest' } } }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/UnitConversion' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [计量换算管理]
+      summary: 删除计量换算
+      operationId: deleteUnitConversion
+      parameters: [ { $ref: '#/components/parameters/UnitConversionId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/unit-conversions/{id}/status:
+    patch:
+      tags: [计量换算管理]
+      summary: 变更计量换算状态
+      operationId: updateUnitConversionStatus
+      parameters: [ { $ref: '#/components/parameters/UnitConversionId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateStatusRequest' } } }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/UnitConversion' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 物料图片管理 ──
+  /api/item-images:
+    post:
+      tags: [物料图片管理]
+      summary: 创建物料图片
+      operationId: createItemImage
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateItemImageRequest' } } }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/ItemImage' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [物料图片管理]
+      summary: 查询物料图片列表
+      operationId: listItemImages
+      parameters:
+        - { name: spuId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: skuId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: levelId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/ItemImageListResponse' } } } }
+  /api/item-images/{id}:
+    get:
+      tags: [物料图片管理]
+      summary: 查询物料图片详情
+      operationId: getItemImageById
+      parameters: [ { $ref: '#/components/parameters/ItemImageId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/ItemImage' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [物料图片管理]
+      summary: 更新物料图片
+      operationId: updateItemImage
+      parameters: [ { $ref: '#/components/parameters/ItemImageId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateItemImageRequest' } } }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/ItemImage' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [物料图片管理]
+      summary: 删除物料图片
+      operationId: deleteItemImage
+      parameters: [ { $ref: '#/components/parameters/ItemImageId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/item-images/{id}/status:
+    patch:
+      tags: [物料图片管理]
+      summary: 变更物料图片状态
+      operationId: updateItemImageStatus
+      parameters: [ { $ref: '#/components/parameters/ItemImageId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateStatusRequest' } } }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/ItemImage' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
 components:
   parameters:
     UserId:
@@ -1494,6 +1836,41 @@ components:
         type: integer
         format: int64
         example: 1
+
+    PackagingLevelId:
+      name: id
+      in: path
+      description: 包装层级 ID
+      required: true
+      schema: { type: integer, format: int64, example: 1 }
+
+    PackagingRelationId:
+      name: id
+      in: path
+      description: 包装关系 ID
+      required: true
+      schema: { type: integer, format: int64, example: 1 }
+
+    BarcodeId:
+      name: id
+      in: path
+      description: 条码 ID
+      required: true
+      schema: { type: integer, format: int64, example: 1 }
+
+    UnitConversionId:
+      name: id
+      in: path
+      description: 计量换算 ID
+      required: true
+      schema: { type: integer, format: int64, example: 1 }
+
+    ItemImageId:
+      name: id
+      in: path
+      description: 物料图片 ID
+      required: true
+      schema: { type: integer, format: int64, example: 1 }
 
   schemas:
     # ──────────────────────────────────────────────
@@ -2839,6 +3216,303 @@ components:
       type: object
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/SkuSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # ──────────────────────────────────────────────
+    # 包装与条码 Schema（Phase B）
+    # ──────────────────────────────────────────────
+    BarcodeType:
+      type: string
+      enum: [EAN13, ITF14, SSCC, OTHER]
+      description: 条码类型
+
+    # 包装层级
+    CreatePackagingLevelRequest:
+      type: object
+      required: [skuId, levelName, levelSeq, unitCode]
+      properties:
+        skuId: { type: integer, format: int64 }
+        levelName: { type: string, minLength: 1, maxLength: 32, example: "箱" }
+        levelSeq: { type: integer, description: 层级序号（1=基本单位起） }
+        unitCode: { type: string, minLength: 1, maxLength: 16, example: "CTN" }
+        length: { type: number, nullable: true }
+        width: { type: number, nullable: true }
+        height: { type: number, nullable: true }
+        netWeight: { type: number, nullable: true }
+        grossWeight: { type: number, nullable: true }
+        isBaseUnit: { type: integer, enum: [0, 1], default: 0 }
+        isSellable: { type: integer, enum: [0, 1], default: 0 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdatePackagingLevelRequest:
+      type: object
+      properties:
+        levelName: { type: string, minLength: 1, maxLength: 32 }
+        unitCode: { type: string, minLength: 1, maxLength: 16 }
+        length: { type: number }
+        width: { type: number }
+        height: { type: number }
+        netWeight: { type: number }
+        grossWeight: { type: number }
+        isBaseUnit: { type: integer, enum: [0, 1] }
+        isSellable: { type: integer, enum: [0, 1] }
+    PackagingLevel:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        skuId: { type: integer, format: int64 }
+        skuCode: { type: string, nullable: true }
+        skuName: { type: string, nullable: true }
+        levelName: { type: string }
+        levelSeq: { type: integer }
+        unitCode: { type: string }
+        length: { type: number, nullable: true }
+        width: { type: number, nullable: true }
+        height: { type: number, nullable: true }
+        netWeight: { type: number, nullable: true }
+        grossWeight: { type: number, nullable: true }
+        isBaseUnit: { type: integer, enum: [0, 1] }
+        isSellable: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    PackagingLevelSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        skuId: { type: integer, format: int64 }
+        skuName: { type: string, nullable: true }
+        levelName: { type: string }
+        levelSeq: { type: integer }
+        unitCode: { type: string }
+        isBaseUnit: { type: integer, enum: [0, 1] }
+        isSellable: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    PackagingLevelListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/PackagingLevelSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 包装关系（父层含子层数量）
+    CreatePackagingRelationRequest:
+      type: object
+      required: [parentLevelId, childLevelId, childQty]
+      properties:
+        parentLevelId: { type: integer, format: int64 }
+        childLevelId: { type: integer, format: int64 }
+        childQty: { type: number, description: 1 父层含子层数量（如 1 托=500 箱） }
+        isFixedQty: { type: integer, enum: [0, 1], default: 1, description: 1=定量整托 0=不满托 }
+        tareWeight: { type: number, nullable: true }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdatePackagingRelationRequest:
+      type: object
+      properties:
+        childQty: { type: number }
+        isFixedQty: { type: integer, enum: [0, 1] }
+        tareWeight: { type: number }
+    PackagingRelation:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        parentLevelId: { type: integer, format: int64 }
+        parentLevelName: { type: string, nullable: true }
+        childLevelId: { type: integer, format: int64 }
+        childLevelName: { type: string, nullable: true }
+        childQty: { type: number }
+        isFixedQty: { type: integer, enum: [0, 1] }
+        tareWeight: { type: number, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    PackagingRelationSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        parentLevelId: { type: integer, format: int64 }
+        parentLevelName: { type: string, nullable: true }
+        childLevelId: { type: integer, format: int64 }
+        childLevelName: { type: string, nullable: true }
+        childQty: { type: number }
+        isFixedQty: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    PackagingRelationListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/PackagingRelationSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 条码
+    CreateBarcodeRequest:
+      type: object
+      required: [levelId, barcode, barcodeType]
+      properties:
+        levelId: { type: integer, format: int64 }
+        barcode: { type: string, minLength: 1, maxLength: 64 }
+        barcodeType: { $ref: '#/components/schemas/BarcodeType' }
+        isPrimary: { type: integer, enum: [0, 1], default: 0 }
+        validFrom: { type: string, format: date, nullable: true }
+        validTo: { type: string, format: date, nullable: true }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateBarcodeRequest:
+      type: object
+      properties:
+        barcodeType: { $ref: '#/components/schemas/BarcodeType' }
+        isPrimary: { type: integer, enum: [0, 1] }
+        validFrom: { type: string, format: date }
+        validTo: { type: string, format: date }
+    Barcode:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        levelId: { type: integer, format: int64 }
+        levelName: { type: string, nullable: true }
+        barcode: { type: string }
+        barcodeType: { $ref: '#/components/schemas/BarcodeType' }
+        isPrimary: { type: integer, enum: [0, 1] }
+        validFrom: { type: string, format: date, nullable: true }
+        validTo: { type: string, format: date, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    BarcodeSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        levelId: { type: integer, format: int64 }
+        levelName: { type: string, nullable: true }
+        barcode: { type: string }
+        barcodeType: { $ref: '#/components/schemas/BarcodeType' }
+        isPrimary: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    BarcodeListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/BarcodeSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 计量换算
+    CreateUnitConversionRequest:
+      type: object
+      required: [skuId, fromUnit, toUnit, factor]
+      properties:
+        skuId: { type: integer, format: int64 }
+        fromUnit: { type: string, minLength: 1, maxLength: 16, example: "ROLL" }
+        toUnit: { type: string, minLength: 1, maxLength: 16, example: "M2" }
+        factor: { type: number, description: from→to 换算系数 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateUnitConversionRequest:
+      type: object
+      properties:
+        factor: { type: number }
+    UnitConversion:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        skuId: { type: integer, format: int64 }
+        skuCode: { type: string, nullable: true }
+        skuName: { type: string, nullable: true }
+        fromUnit: { type: string }
+        toUnit: { type: string }
+        factor: { type: number }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    UnitConversionSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        skuId: { type: integer, format: int64 }
+        skuName: { type: string, nullable: true }
+        fromUnit: { type: string }
+        toUnit: { type: string }
+        factor: { type: number }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    UnitConversionListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/UnitConversionSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 物料图片（仅存 URL）
+    CreateItemImageRequest:
+      type: object
+      required: [imageUrl]
+      properties:
+        spuId: { type: integer, format: int64, nullable: true }
+        skuId: { type: integer, format: int64, nullable: true }
+        levelId: { type: integer, format: int64, nullable: true }
+        imageUrl: { type: string, minLength: 1, maxLength: 512 }
+        imageType: { type: string, maxLength: 32, description: "实体/内包装/外包装" }
+        sortOrder: { type: integer, default: 0 }
+        isPrimary: { type: integer, enum: [0, 1], default: 0 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateItemImageRequest:
+      type: object
+      properties:
+        imageUrl: { type: string, minLength: 1, maxLength: 512 }
+        imageType: { type: string, maxLength: 32 }
+        sortOrder: { type: integer }
+        isPrimary: { type: integer, enum: [0, 1] }
+    ItemImage:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuId: { type: integer, format: int64, nullable: true }
+        skuId: { type: integer, format: int64, nullable: true }
+        levelId: { type: integer, format: int64, nullable: true }
+        imageUrl: { type: string }
+        imageType: { type: string, nullable: true }
+        sortOrder: { type: integer }
+        isPrimary: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    ItemImageSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        spuId: { type: integer, format: int64, nullable: true }
+        skuId: { type: integer, format: int64, nullable: true }
+        levelId: { type: integer, format: int64, nullable: true }
+        imageUrl: { type: string }
+        imageType: { type: string, nullable: true }
+        sortOrder: { type: integer }
+        isPrimary: { type: integer, enum: [0, 1] }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    ItemImageListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ItemImageSummary' } }
         total: { type: integer, format: int64 }
         page: { type: integer }
         pageSize: { type: integer }

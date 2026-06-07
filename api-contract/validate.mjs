@@ -43,10 +43,23 @@ const REQUIRED_OPERATIONS = [
   ['put', '/api/skus/{id}', 'updateSku'],
   ['delete', '/api/skus/{id}', 'deleteSku'],
   ['patch', '/api/skus/{id}/status', 'updateSkuStatus'],
+  ['post', '/api/packaging-levels', 'createPackagingLevel'],
+  ['get', '/api/packaging-levels', 'listPackagingLevels'],
+  ['post', '/api/packaging-relations', 'createPackagingRelation'],
+  ['get', '/api/packaging-relations', 'listPackagingRelations'],
+  ['post', '/api/barcodes', 'createBarcode'],
+  ['get', '/api/barcodes', 'listBarcodes'],
+  ['post', '/api/unit-conversions', 'createUnitConversion'],
+  ['get', '/api/unit-conversions', 'listUnitConversions'],
+  ['post', '/api/item-images', 'createItemImage'],
+  ['get', '/api/item-images', 'listItemImages'],
 ];
 
 /** SKU item_type 枚举（原料/半成品/成品） */
 const EXPECTED_ITEM_TYPES = ['RAW', 'SEMI', 'FINISHED'];
+
+/** 条码类型枚举 */
+const EXPECTED_BARCODE_TYPES = ['EAN13', 'ITF14', 'SSCC', 'OTHER'];
 
 function fail(msg) {
   console.error('✗ ' + msg);
@@ -76,6 +89,12 @@ for (const t of EXPECTED_TYPES) {
 const itemTypeEnum = api.components?.schemas?.ItemType?.enum ?? [];
 for (const t of EXPECTED_ITEM_TYPES) {
   if (!itemTypeEnum.includes(t)) fail(`ItemType 枚举缺少 ${t}`);
+}
+
+// 5) 条码类型枚举完整（4 类）
+const barcodeTypeEnum = api.components?.schemas?.BarcodeType?.enum ?? [];
+for (const t of EXPECTED_BARCODE_TYPES) {
+  if (!barcodeTypeEnum.includes(t)) fail(`BarcodeType 枚举缺少 ${t}`);
 }
 
 const paths = Object.keys(api.paths ?? {}).length;
