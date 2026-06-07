@@ -22,4 +22,11 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException departmentNotFound() {
         return new ResourceNotFoundException("DEPARTMENT_NOT_FOUND", "部门不存在");
     }
+
+    /**
+     * 快捷构造：顾客不存在
+     */
+    public static ResourceNotFoundException customerNotFound() {
+        return new ResourceNotFoundException("CUSTOMER_NOT_FOUND", "顾客不存在");
+    }
 }

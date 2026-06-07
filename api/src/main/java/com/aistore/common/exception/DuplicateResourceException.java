@@ -37,4 +37,18 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateDepartmentCode() {
         return new DuplicateResourceException("DUPLICATE_DEPARTMENT_CODE", "部门编码已存在");
     }
+
+    /**
+     * 快捷构造：客户名称已存在
+     */
+    public static DuplicateResourceException duplicateCustomerName() {
+        return new DuplicateResourceException("DUPLICATE_CUSTOMER_NAME", "客户名称已存在");
+    }
+
+    /**
+     * 快捷构造：客户编码已存在
+     */
+    public static DuplicateResourceException duplicateCustomerCode() {
+        return new DuplicateResourceException("DUPLICATE_CUSTOMER_CODE", "客户编码已存在");
+    }
 }

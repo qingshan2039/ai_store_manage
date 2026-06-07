@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.customer.mapper.CustomerMapper">
+
+    <!-- 分页查询顾客列表 -->
+    <select id="selectCustomerPage" resultType="com.aistore.module.customer.entity.Customer">
+        SELECT
+            id, code, name, address, ship_address, contact, phone, email, remark, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM customer
+        WHERE deleted = 0
+        <!-- 关键词搜索：同时模糊匹配 name、code、contact -->
+        <if test="keyword != null and keyword != ''">
+            AND (
+                name LIKE CONCAT('%', #{keyword}, '%')
+                OR code LIKE CONCAT('%', #{keyword}, '%')
+                OR contact LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <!-- 状态筛选 -->
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC, id DESC
+    </select>
+
+</mapper>
