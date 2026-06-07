@@ -26,6 +26,11 @@ import PalletTypeListPage from '@/pages/pallet/PalletTypeListPage';
 import MaterialCategoryListPage from '@/pages/material-category/MaterialCategoryListPage';
 import SpuListPage from '@/pages/spu/SpuListPage';
 import SkuListPage from '@/pages/sku/SkuListPage';
+import PackagingLevelListPage from '@/pages/packaging-level/PackagingLevelListPage';
+import PackagingRelationListPage from '@/pages/packaging-relation/PackagingRelationListPage';
+import BarcodeListPage from '@/pages/barcode/BarcodeListPage';
+import UnitConversionListPage from '@/pages/unit-conversion/UnitConversionListPage';
+import ItemImageListPage from '@/pages/item-image/ItemImageListPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -68,6 +73,13 @@ export const routes: RouteObject[] = [
       { path: 'material/categories', element: <MaterialCategoryListPage /> },
       { path: 'material/spus', element: <SpuListPage /> },
       { path: 'material/skus', element: <SkuListPage /> },
+
+      /* ── 包装与条码（Phase B） ── */
+      { path: 'packaging/levels', element: <PackagingLevelListPage /> },
+      { path: 'packaging/relations', element: <PackagingRelationListPage /> },
+      { path: 'packaging/barcodes', element: <BarcodeListPage /> },
+      { path: 'packaging/unit-conversions', element: <UnitConversionListPage /> },
+      { path: 'packaging/images', element: <ItemImageListPage /> },
 
       /* ── 库存管理（预留） ── */
       { path: 'inventory/stock', element: <ComingSoon /> },

@@ -10,6 +10,7 @@ import {
   DatabaseOutlined,
   InboxOutlined,
   GoldOutlined,
+  BarcodeOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -57,6 +58,18 @@ export const menuConfig: MenuItemConfig[] = [
       { key: '/material/categories', label: '物料品类' },
       { key: '/material/spus', label: '物料 SPU' },
       { key: '/material/skus', label: '物料 SKU' },
+    ],
+  },
+  {
+    key: '/packaging',
+    label: '包装与条码',
+    icon: React.createElement(BarcodeOutlined),
+    children: [
+      { key: '/packaging/levels', label: '包装层级' },
+      { key: '/packaging/relations', label: '包装关系' },
+      { key: '/packaging/barcodes', label: '条码管理' },
+      { key: '/packaging/unit-conversions', label: '计量换算' },
+      { key: '/packaging/images', label: '物料图片' },
     ],
   },
   {

@@ -118,3 +118,17 @@ export const ITEM_TYPE_OPTIONS = [
   { label: '半成品', value: 'SEMI' },
   { label: '成品', value: 'FINISHED' },
 ];
+
+/** 条码类型（对齐契约 BarcodeType） */
+export const BARCODE_TYPE_OPTIONS = [
+  { label: 'EAN13', value: 'EAN13' },
+  { label: 'ITF14', value: 'ITF14' },
+  { label: 'SSCC', value: 'SSCC' },
+  { label: '其他', value: 'OTHER' },
+];
+
+/** 是/否（0/1 布尔标识，如 isFixedQty/isPrimary/isBaseUnit） */
+export const YES_NO_OPTIONS = [
+  { label: '是', value: 1 },
+  { label: '否', value: 0 },
+];
