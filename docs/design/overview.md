@@ -34,7 +34,7 @@ ai_store_manage/
 `com.aistore` 下按模块划分:
 
 - `config/` 全局配置(MyBatis-Plus 分页、字段自动填充、Jackson、Security)
-- `common/` 公共组件(统一异常、统一错误响应 `ErrorResponse` / `FieldError`)
+- `common/` 公共组件(统一异常、统一错误响应 `ErrorResponse` / `FieldError`、jsonb 类型处理器、`storage/` 本地文件存储服务)
 - `module/<模块>/` 业务模块(controller / service / mapper / entity / dto / vo / converter [/ enums])
 
 前端按 `api/`、`types/`、`pages/<模块>/`、`components/`、`hooks/`、`stores/`、`router/`、`constants/` 组织。
@@ -51,6 +51,8 @@ ai_store_manage/
 | 库区管理（隶属仓库） | ✅ 已实现 | [features/zone.md](../features/zone.md) |
 | 托盘类型管理（ISO 规格） | ✅ 已实现 | [features/pallet.md](../features/pallet.md) |
 | 物料目录（品类 / SPU / SKU） | ✅ 已实现（Phase A） | [features/material-catalog.md](../features/material-catalog.md) |
+| 运输管理（车辆 / 打油 / 司机打卡） | ✅ 已实现 | [features/transport.md](../features/transport.md) |
+| 文件上传（图片，本地存储 + 静态映射） | ✅ 已实现 | [features/transport.md](../features/transport.md) |
 | 物料包装 / 条码 | 🚧 预留（Phase B） | — |
 | 库存 / 托盘 LPN(查询/出入库/调拨/盘点) | 🚧 预留（Phase C） | — |
 
@@ -66,7 +68,7 @@ ai_store_manage/
 
 ## 7. 数据库初始化与迁移（Flyway）
 
-- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子;`V2`/`V3` 顾客主表与送货地址子表;[`V4__add_master_data.sql`](../../api/src/main/resources/db/migration/V4__add_master_data.sql) 新增 `supplier`、`warehouse`、`zone`、`pallet_type` 四张主数据表；[`V5__add_material_catalog.sql`](../../api/src/main/resources/db/migration/V5__add_material_catalog.sql) 新增 `material_category`(含 5 品类种子)、`spu`、`sku`(spec 为 jsonb) 物料目录三表。
+- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子;`V2`/`V3` 顾客主表与送货地址子表;[`V4__add_master_data.sql`](../../api/src/main/resources/db/migration/V4__add_master_data.sql) 新增 `supplier`、`warehouse`、`zone`、`pallet_type` 四张主数据表；[`V5__add_material_catalog.sql`](../../api/src/main/resources/db/migration/V5__add_material_catalog.sql) 新增 `material_category`(含 5 品类种子)、`spu`、`sku`(spec 为 jsonb) 物料目录三表;[`V8__add_vehicle_fuel_checkin.sql`](../../api/src/main/resources/db/migration/V8__add_vehicle_fuel_checkin.sql) 新增 `vehicle`、`fuel_record`(images 为 jsonb)、`driver_checkin` 运输三表,并种入 4 车 / 4 司机 / 4 跟车员(sys_user)与最近 7 天打卡(本模块迁移改号为 V8,接在 main 既有的 V6 包装条码、V7 库存 LPN 之后)。
 - 启动自动迁移:应用启动时 Flyway 自动执行待应用的迁移,以 `flyway_schema_history` 表跟踪。
 - 兼容已有库:`baseline-on-migrate: true`——对"已有表但无 Flyway 历史"的库先建立基线(baseline)再迁移,避免首次报错;全新空库则直接执行 V1 建表灌种子。
 - 演进规则:**已发布的迁移文件不可修改**;新的 schema 变更一律新增递增版本 `V2__xxx.sql`、`V3__xxx.sql`……
