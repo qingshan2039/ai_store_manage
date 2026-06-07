@@ -43,10 +43,31 @@ const REQUIRED_OPERATIONS = [
   ['put', '/api/skus/{id}', 'updateSku'],
   ['delete', '/api/skus/{id}', 'deleteSku'],
   ['patch', '/api/skus/{id}/status', 'updateSkuStatus'],
+  // 运输管理：车辆 / 打油 / 打卡 / 文件上传
+  ['post', '/api/vehicles', 'createVehicle'],
+  ['get', '/api/vehicles', 'listVehicles'],
+  ['get', '/api/vehicles/{id}', 'getVehicleById'],
+  ['put', '/api/vehicles/{id}', 'updateVehicle'],
+  ['delete', '/api/vehicles/{id}', 'deleteVehicle'],
+  ['patch', '/api/vehicles/{id}/status', 'updateVehicleStatus'],
+  ['post', '/api/fuel-records', 'createFuelRecord'],
+  ['get', '/api/fuel-records', 'listFuelRecords'],
+  ['get', '/api/fuel-records/{id}', 'getFuelRecordById'],
+  ['put', '/api/fuel-records/{id}', 'updateFuelRecord'],
+  ['delete', '/api/fuel-records/{id}', 'deleteFuelRecord'],
+  ['post', '/api/driver-checkins', 'createDriverCheckin'],
+  ['get', '/api/driver-checkins', 'listDriverCheckins'],
+  ['get', '/api/driver-checkins/{id}', 'getDriverCheckinById'],
+  ['put', '/api/driver-checkins/{id}', 'updateDriverCheckin'],
+  ['delete', '/api/driver-checkins/{id}', 'deleteDriverCheckin'],
+  ['post', '/api/files', 'uploadFile'],
 ];
 
 /** SKU item_type 枚举（原料/半成品/成品） */
 const EXPECTED_ITEM_TYPES = ['RAW', 'SEMI', 'FINISHED'];
+
+/** 打卡出勤状态枚举（正常/迟到/缺勤/请假） */
+const EXPECTED_CHECKIN_STATUS = ['NORMAL', 'LATE', 'ABSENT', 'LEAVE'];
 
 function fail(msg) {
   console.error('✗ ' + msg);
@@ -77,6 +98,16 @@ const itemTypeEnum = api.components?.schemas?.ItemType?.enum ?? [];
 for (const t of EXPECTED_ITEM_TYPES) {
   if (!itemTypeEnum.includes(t)) fail(`ItemType 枚举缺少 ${t}`);
 }
+
+// 5) 打卡出勤状态枚举完整（4 类）
+const checkinStatusEnum = api.components?.schemas?.CheckinStatus?.enum ?? [];
+for (const t of EXPECTED_CHECKIN_STATUS) {
+  if (!checkinStatusEnum.includes(t)) fail(`CheckinStatus 枚举缺少 ${t}`);
+}
+
+// 6) listUsers 支持 departmentType 过滤参数
+const listUsersParams = (api.paths?.['/api/users']?.get?.parameters ?? []).map((p) => p.name);
+if (!listUsersParams.includes('departmentType')) fail('GET /api/users 缺少 departmentType 查询参数');
 
 const paths = Object.keys(api.paths ?? {}).length;
 const schemas = Object.keys(api.components?.schemas ?? {}).length;

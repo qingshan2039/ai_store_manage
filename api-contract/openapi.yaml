@@ -43,6 +43,14 @@ tags:
     description: 标准产品单元 SPU CRUD、状态管理（品类层）
   - name: 物料SKU管理
     description: 最小库存单元 SKU CRUD、状态管理（含 item_type、结构化尺寸、jsonb 规格）
+  - name: 车辆管理
+    description: 车辆 CRUD、状态管理（含常态化司机/跟车员配置，支持 OTHER 替补）
+  - name: 打油记录管理
+    description: 车辆打油（加油）流水 CRUD（含小票图片）
+  - name: 司机打卡管理
+    description: 司机每日打卡记录 CRUD（含当天司机/跟车员，缺席可填替补）
+  - name: 文件上传
+    description: 通用文件（图片）上传，返回访问 URL
 
 paths:
   /api/users:
@@ -158,6 +166,12 @@ paths:
             type: integer
             format: int64
             example: 1
+        - name: departmentType
+          in: query
+          description: 部门类型筛选（按所属部门 type 过滤，如 TRANSPORT/WAREHOUSE/PRODUCTION）
+          required: false
+          schema:
+            $ref: '#/components/schemas/DepartmentType'
         - name: jobTitle
           in: query
           description: 职位筛选（模糊匹配）
@@ -1393,6 +1407,218 @@ paths:
         '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Sku' } } } }
         '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
 
+  # ── 车辆管理 ──
+  /api/vehicles:
+    post:
+      tags: [车辆管理]
+      summary: 创建车辆
+      operationId: createVehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateVehicleRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Vehicle' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 车牌冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [车辆管理]
+      summary: 查询车辆列表
+      operationId: listVehicles
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/VehicleListResponse' } } } }
+  /api/vehicles/{id}:
+    get:
+      tags: [车辆管理]
+      summary: 查询车辆详情
+      operationId: getVehicleById
+      parameters: [ { $ref: '#/components/parameters/VehicleId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Vehicle' } } } }
+        '404': { description: 车辆不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [车辆管理]
+      summary: 更新车辆
+      operationId: updateVehicle
+      parameters: [ { $ref: '#/components/parameters/VehicleId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateVehicleRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Vehicle' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 车牌冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [车辆管理]
+      summary: 删除车辆
+      operationId: deleteVehicle
+      parameters: [ { $ref: '#/components/parameters/VehicleId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/vehicles/{id}/status:
+    patch:
+      tags: [车辆管理]
+      summary: 变更车辆状态
+      operationId: updateVehicleStatus
+      parameters: [ { $ref: '#/components/parameters/VehicleId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Vehicle' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 打油记录管理 ──
+  /api/fuel-records:
+    post:
+      tags: [打油记录管理]
+      summary: 创建打油记录
+      operationId: createFuelRecord
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateFuelRecordRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/FuelRecord' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [打油记录管理]
+      summary: 查询打油记录列表
+      operationId: listFuelRecords
+      parameters:
+        - { name: vehicleId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: fuelDateStart, in: query, required: false, schema: { type: string, format: date } }
+        - { name: fuelDateEnd, in: query, required: false, schema: { type: string, format: date } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/FuelRecordListResponse' } } } }
+  /api/fuel-records/{id}:
+    get:
+      tags: [打油记录管理]
+      summary: 查询打油记录详情
+      operationId: getFuelRecordById
+      parameters: [ { $ref: '#/components/parameters/FuelRecordId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/FuelRecord' } } } }
+        '404': { description: 记录不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [打油记录管理]
+      summary: 更新打油记录
+      operationId: updateFuelRecord
+      parameters: [ { $ref: '#/components/parameters/FuelRecordId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateFuelRecordRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/FuelRecord' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [打油记录管理]
+      summary: 删除打油记录
+      operationId: deleteFuelRecord
+      parameters: [ { $ref: '#/components/parameters/FuelRecordId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 司机打卡管理 ──
+  /api/driver-checkins:
+    post:
+      tags: [司机打卡管理]
+      summary: 创建打卡记录
+      operationId: createDriverCheckin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateDriverCheckinRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/DriverCheckin' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 同司机同日打卡已存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [司机打卡管理]
+      summary: 查询打卡记录列表
+      operationId: listDriverCheckins
+      parameters:
+        - { name: driverUserId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: vehicleId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: checkinStatus, in: query, required: false, schema: { $ref: '#/components/schemas/CheckinStatus' } }
+        - { name: checkinDateStart, in: query, required: false, schema: { type: string, format: date } }
+        - { name: checkinDateEnd, in: query, required: false, schema: { type: string, format: date } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/DriverCheckinListResponse' } } } }
+  /api/driver-checkins/{id}:
+    get:
+      tags: [司机打卡管理]
+      summary: 查询打卡记录详情
+      operationId: getDriverCheckinById
+      parameters: [ { $ref: '#/components/parameters/DriverCheckinId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/DriverCheckin' } } } }
+        '404': { description: 记录不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [司机打卡管理]
+      summary: 更新打卡记录
+      operationId: updateDriverCheckin
+      parameters: [ { $ref: '#/components/parameters/DriverCheckinId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateDriverCheckinRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/DriverCheckin' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 同司机同日打卡已存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [司机打卡管理]
+      summary: 删除打卡记录
+      operationId: deleteDriverCheckin
+      parameters: [ { $ref: '#/components/parameters/DriverCheckinId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 文件上传 ──
+  /api/files:
+    post:
+      tags: [文件上传]
+      summary: 上传文件（图片）
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: 待上传文件（图片） }
+      responses:
+        '201': { description: 上传成功, content: { application/json: { schema: { $ref: '#/components/schemas/UploadFileResponse' } } } }
+        '400': { description: 文件为空/类型不支持/超出大小限制, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
 components:
   parameters:
     UserId:
@@ -1489,6 +1715,36 @@ components:
       name: id
       in: path
       description: SKU ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    VehicleId:
+      name: id
+      in: path
+      description: 车辆 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    FuelRecordId:
+      name: id
+      in: path
+      description: 打油记录 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    DriverCheckinId:
+      name: id
+      in: path
+      description: 打卡记录 ID
       required: true
       schema:
         type: integer
@@ -2843,6 +3099,213 @@ components:
         page: { type: integer }
         pageSize: { type: integer }
         totalPages: { type: integer }
+
+    # ──────────────────────────────────────────────
+    # 运输管理 Schema（车辆 / 打油 / 打卡 / 文件）
+    # ──────────────────────────────────────────────
+    CheckinStatus:
+      type: string
+      enum: [NORMAL, LATE, ABSENT, LEAVE]
+      description: 出勤状态 正常/迟到/缺勤/请假
+
+    # 车辆（含常态化司机/跟车员，支持 OTHER 替补）
+    CreateVehicleRequest:
+      type: object
+      required: [plateNo]
+      properties:
+        plateNo: { type: string, minLength: 1, maxLength: 32, example: "9924" }
+        defaultDriverUserId: { type: integer, format: int64, nullable: true, description: 常态化司机用户ID（与 defaultDriverOther 二选一） }
+        defaultDriverOther: { type: string, maxLength: 64, nullable: true, description: 常态化司机替补名（OTHER，无在册用户时填） }
+        defaultEscortUserId: { type: integer, format: int64, nullable: true, description: 常态化跟车员用户ID }
+        defaultEscortOther: { type: string, maxLength: 64, nullable: true, description: 常态化跟车员替补名（OTHER） }
+        remark: { type: string, maxLength: 500 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateVehicleRequest:
+      type: object
+      properties:
+        plateNo: { type: string, minLength: 1, maxLength: 32 }
+        defaultDriverUserId: { type: integer, format: int64, nullable: true }
+        defaultDriverOther: { type: string, maxLength: 64, nullable: true }
+        defaultEscortUserId: { type: integer, format: int64, nullable: true }
+        defaultEscortOther: { type: string, maxLength: 64, nullable: true }
+        remark: { type: string, maxLength: 500 }
+    Vehicle:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        plateNo: { type: string }
+        defaultDriverUserId: { type: integer, format: int64, nullable: true }
+        defaultDriverOther: { type: string, nullable: true }
+        defaultDriverName: { type: string, nullable: true, description: 常态司机显示名（在册用户名或替补名） }
+        defaultEscortUserId: { type: integer, format: int64, nullable: true }
+        defaultEscortOther: { type: string, nullable: true }
+        defaultEscortName: { type: string, nullable: true, description: 常态跟车员显示名 }
+        remark: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    VehicleSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        plateNo: { type: string }
+        defaultDriverName: { type: string, nullable: true }
+        defaultEscortName: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    VehicleListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/VehicleSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 打油记录（含小票图片 URL 列表）
+    CreateFuelRecordRequest:
+      type: object
+      required: [vehicleId, fuelDate]
+      properties:
+        vehicleId: { type: integer, format: int64 }
+        driverUserId: { type: integer, format: int64, nullable: true, description: 打油司机用户ID }
+        fuelDate: { type: string, format: date, example: "2026-06-07" }
+        liters: { type: number, nullable: true, description: 升数 }
+        amount: { type: number, nullable: true, description: 金额（元） }
+        unitPrice: { type: number, nullable: true, description: 单价（元/升） }
+        odometer: { type: number, nullable: true, description: 里程表读数 }
+        images: { type: array, nullable: true, items: { type: string }, description: 小票/凭证图片 URL 列表 }
+        remark: { type: string, maxLength: 500 }
+    UpdateFuelRecordRequest:
+      type: object
+      properties:
+        vehicleId: { type: integer, format: int64 }
+        driverUserId: { type: integer, format: int64, nullable: true }
+        fuelDate: { type: string, format: date }
+        liters: { type: number, nullable: true }
+        amount: { type: number, nullable: true }
+        unitPrice: { type: number, nullable: true }
+        odometer: { type: number, nullable: true }
+        images: { type: array, nullable: true, items: { type: string } }
+        remark: { type: string, maxLength: 500 }
+    FuelRecord:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        vehicleId: { type: integer, format: int64 }
+        vehiclePlateNo: { type: string, nullable: true }
+        driverUserId: { type: integer, format: int64, nullable: true }
+        driverName: { type: string, nullable: true }
+        fuelDate: { type: string, format: date }
+        liters: { type: number, nullable: true }
+        amount: { type: number, nullable: true }
+        unitPrice: { type: number, nullable: true }
+        odometer: { type: number, nullable: true }
+        images: { type: array, nullable: true, items: { type: string } }
+        remark: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    FuelRecordSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        vehicleId: { type: integer, format: int64 }
+        vehiclePlateNo: { type: string, nullable: true }
+        driverName: { type: string, nullable: true }
+        fuelDate: { type: string, format: date }
+        liters: { type: number, nullable: true }
+        amount: { type: number, nullable: true }
+        imageCount: { type: integer, description: 图片数量 }
+        createdAt: { type: string, format: date-time }
+    FuelRecordListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/FuelRecordSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 司机每日打卡（司机/跟车员支持 OTHER 替补）
+    CreateDriverCheckinRequest:
+      type: object
+      required: [checkinDate]
+      properties:
+        driverUserId: { type: integer, format: int64, nullable: true, description: 司机用户ID（与 driverOther 二选一） }
+        driverOther: { type: string, maxLength: 64, nullable: true, description: 司机替补名（OTHER，缺席时填） }
+        vehicleId: { type: integer, format: int64, nullable: true }
+        escortUserId: { type: integer, format: int64, nullable: true, description: 跟车员用户ID }
+        escortOther: { type: string, maxLength: 64, nullable: true, description: 跟车员替补名（OTHER） }
+        checkinDate: { type: string, format: date, example: "2026-06-07" }
+        clockInAt: { type: string, format: date-time, nullable: true }
+        clockOutAt: { type: string, format: date-time, nullable: true }
+        checkinStatus: { $ref: '#/components/schemas/CheckinStatus' }
+        remark: { type: string, maxLength: 500 }
+    UpdateDriverCheckinRequest:
+      type: object
+      properties:
+        driverUserId: { type: integer, format: int64, nullable: true }
+        driverOther: { type: string, maxLength: 64, nullable: true }
+        vehicleId: { type: integer, format: int64, nullable: true }
+        escortUserId: { type: integer, format: int64, nullable: true }
+        escortOther: { type: string, maxLength: 64, nullable: true }
+        checkinDate: { type: string, format: date }
+        clockInAt: { type: string, format: date-time, nullable: true }
+        clockOutAt: { type: string, format: date-time, nullable: true }
+        checkinStatus: { $ref: '#/components/schemas/CheckinStatus' }
+        remark: { type: string, maxLength: 500 }
+    DriverCheckin:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        driverUserId: { type: integer, format: int64, nullable: true }
+        driverOther: { type: string, nullable: true }
+        driverName: { type: string, nullable: true, description: 司机显示名（在册用户名或替补名） }
+        vehicleId: { type: integer, format: int64, nullable: true }
+        vehiclePlateNo: { type: string, nullable: true }
+        escortUserId: { type: integer, format: int64, nullable: true }
+        escortOther: { type: string, nullable: true }
+        escortName: { type: string, nullable: true, description: 跟车员显示名 }
+        checkinDate: { type: string, format: date }
+        clockInAt: { type: string, format: date-time, nullable: true }
+        clockOutAt: { type: string, format: date-time, nullable: true }
+        checkinStatus: { $ref: '#/components/schemas/CheckinStatus' }
+        remark: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    DriverCheckinSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        driverUserId: { type: integer, format: int64, nullable: true }
+        driverName: { type: string, nullable: true }
+        vehicleId: { type: integer, format: int64, nullable: true }
+        vehiclePlateNo: { type: string, nullable: true }
+        escortName: { type: string, nullable: true }
+        checkinDate: { type: string, format: date }
+        clockInAt: { type: string, format: date-time, nullable: true }
+        clockOutAt: { type: string, format: date-time, nullable: true }
+        checkinStatus: { $ref: '#/components/schemas/CheckinStatus' }
+    DriverCheckinListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/DriverCheckinSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 文件上传响应
+    UploadFileResponse:
+      type: object
+      properties:
+        url: { type: string, description: 文件访问 URL（如 /api/files/2026/06/xxx.jpg） }
 
     # ──────────────────────────────────────────────
     # 错误响应 Schema
