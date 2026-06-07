@@ -4,7 +4,7 @@
 
 ## 1. 系统简介
 
-面向仓储/门店运营的后台管理系统(WMS),提供用户、部门等基础管理能力,并为商品、仓库、供应商、库存(出入库/调拨/盘点)等业务模块预留扩展。
+面向仓储/门店运营的后台管理系统(WMS),提供用户、部门、顾客、供应商、仓库、库区、托盘类型等基础主数据管理能力,并为商品、库存(出入库/调拨/盘点)等业务模块预留扩展。
 
 ## 2. 技术栈
 
@@ -46,7 +46,11 @@ ai_store_manage/
 | 用户管理 | ✅ 已实现 | [features/user.md](../features/user.md) |
 | 部门管理 | ✅ 已实现 | [features/department.md](../features/department.md) |
 | 顾客管理 | ✅ 已实现 | [features/customer.md](../features/customer.md) |
-| 商品 / 仓库 / 供应商 | 🚧 预留 | — |
+| 供应商管理 | ✅ 已实现 | [features/supplier.md](../features/supplier.md) |
+| 仓库管理 | ✅ 已实现 | [features/warehouse.md](../features/warehouse.md) |
+| 库区管理（隶属仓库） | ✅ 已实现 | [features/zone.md](../features/zone.md) |
+| 托盘类型管理（ISO 规格） | ✅ 已实现 | [features/pallet.md](../features/pallet.md) |
+| 商品管理 | 🚧 预留 | — |
 | 库存(查询/出入库/调拨/盘点) | 🚧 预留 | — |
 
 ## 6. 统一约定
@@ -61,7 +65,7 @@ ai_store_manage/
 
 ## 7. 数据库初始化与迁移（Flyway）
 
-- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子。
+- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子;`V2`/`V3` 顾客主表与送货地址子表;[`V4__add_master_data.sql`](../../api/src/main/resources/db/migration/V4__add_master_data.sql) 新增 `supplier`、`warehouse`、`zone`、`pallet_type` 四张主数据表。
 - 启动自动迁移:应用启动时 Flyway 自动执行待应用的迁移,以 `flyway_schema_history` 表跟踪。
 - 兼容已有库:`baseline-on-migrate: true`——对"已有表但无 Flyway 历史"的库先建立基线(baseline)再迁移,避免首次报错;全新空库则直接执行 V1 建表灌种子。
 - 演进规则:**已发布的迁移文件不可修改**;新的 schema 变更一律新增递增版本 `V2__xxx.sql`、`V3__xxx.sql`……
