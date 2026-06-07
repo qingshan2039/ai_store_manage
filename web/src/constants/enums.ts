@@ -81,3 +81,27 @@ export const CUSTOMER_STATUS_OPTIONS = [
   { label: '启用', value: CUSTOMER_STATUS.ENABLED },
   { label: '禁用', value: CUSTOMER_STATUS.DISABLED },
 ];
+
+/** 通用启停状态（供应商/仓库/库区/托盘等主数据共用） */
+export const STATUS = {
+  DISABLED: 0,
+  ENABLED: 1,
+} as const;
+
+export const STATUS_OPTIONS = [
+  { label: '启用', value: STATUS.ENABLED },
+  { label: '禁用', value: STATUS.DISABLED },
+];
+
+/** 仓库类型（对齐契约 WarehouseType） */
+export const WAREHOUSE_TYPE_MAP: Record<string, string> = {
+  RAW: '原料仓',
+  SEMI: '半成品仓',
+  FINISHED: '成品仓',
+};
+
+export const WAREHOUSE_TYPE_OPTIONS = [
+  { label: '原料仓', value: 'RAW' },
+  { label: '半成品仓', value: 'SEMI' },
+  { label: '成品仓', value: 'FINISHED' },
+];

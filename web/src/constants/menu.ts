@@ -42,8 +42,10 @@ export const menuConfig: MenuItemConfig[] = [
     children: [
       { key: '/base/customers', label: '顾客管理' },
       { key: '/base/products', label: '商品管理' },
-      { key: '/base/warehouses', label: '仓库管理' },
       { key: '/base/suppliers', label: '供应商管理' },
+      { key: '/base/warehouses', label: '仓库管理' },
+      { key: '/base/zones', label: '库区管理' },
+      { key: '/base/pallet-types', label: '托盘类型' },
     ],
   },
   {

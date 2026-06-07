@@ -32,3 +32,8 @@ export interface FieldError {
 
 /** 弹窗操作模式 */
 export type ModalMode = 'create' | 'edit' | 'view';
+
+/** 通用状态变更请求（对齐 OpenAPI UpdateStatusRequest） */
+export interface UpdateStatusRequest {
+  status: 0 | 1;
+}

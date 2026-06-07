@@ -19,6 +19,10 @@ import UserListPage from '@/pages/user/UserListPage';
 import UserDetailPage from '@/pages/user/UserDetailPage';
 import DepartmentListPage from '@/pages/department/DepartmentListPage';
 import CustomerListPage from '@/pages/customer/CustomerListPage';
+import SupplierListPage from '@/pages/supplier/SupplierListPage';
+import WarehouseListPage from '@/pages/warehouse/WarehouseListPage';
+import ZoneListPage from '@/pages/zone/ZoneListPage';
+import PalletTypeListPage from '@/pages/pallet/PalletTypeListPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -52,8 +56,10 @@ export const routes: RouteObject[] = [
       /* ── 基础数据 ── */
       { path: 'base/customers', element: <CustomerListPage /> },
       { path: 'base/products', element: <ComingSoon /> },
-      { path: 'base/warehouses', element: <ComingSoon /> },
-      { path: 'base/suppliers', element: <ComingSoon /> },
+      { path: 'base/suppliers', element: <SupplierListPage /> },
+      { path: 'base/warehouses', element: <WarehouseListPage /> },
+      { path: 'base/zones', element: <ZoneListPage /> },
+      { path: 'base/pallet-types', element: <PalletTypeListPage /> },
 
       /* ── 库存管理（预留） ── */
       { path: 'inventory/stock', element: <ComingSoon /> },
