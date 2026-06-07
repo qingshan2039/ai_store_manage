@@ -25,6 +25,14 @@ const REQUIRED_OPERATIONS = [
   ['put', '/api/customers/{id}', 'updateCustomer'],
   ['delete', '/api/customers/{id}', 'deleteCustomer'],
   ['patch', '/api/customers/{id}/status', 'updateCustomerStatus'],
+  ['post', '/api/suppliers', 'createSupplier'],
+  ['get', '/api/suppliers', 'listSuppliers'],
+  ['post', '/api/warehouses', 'createWarehouse'],
+  ['get', '/api/warehouses', 'listWarehouses'],
+  ['post', '/api/zones', 'createZone'],
+  ['get', '/api/zones', 'listZones'],
+  ['post', '/api/pallet-types', 'createPalletType'],
+  ['get', '/api/pallet-types', 'listPalletTypes'],
 ];
 
 function fail(msg) {

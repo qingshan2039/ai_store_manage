@@ -29,6 +29,14 @@ tags:
     description: 部门 CRUD、状态管理（扁平结构，按类型分类）
   - name: 顾客管理
     description: 顾客（客户公司）CRUD、状态管理
+  - name: 供应商管理
+    description: 供应商 CRUD、状态管理
+  - name: 仓库管理
+    description: 仓库 CRUD、状态管理
+  - name: 库区管理
+    description: 库区 CRUD、状态管理（隶属仓库）
+  - name: 托盘类型管理
+    description: 托盘类型 CRUD、状态管理（ISO 规格）
 
 paths:
   /api/users:
@@ -867,6 +875,299 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ── 供应商管理 ──
+  /api/suppliers:
+    post:
+      tags: [供应商管理]
+      summary: 创建供应商
+      operationId: createSupplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSupplierRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 名称或编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [供应商管理]
+      summary: 查询供应商列表
+      operationId: listSuppliers
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/SupplierListResponse' } } } }
+  /api/suppliers/{id}:
+    get:
+      tags: [供应商管理]
+      summary: 查询供应商详情
+      operationId: getSupplierById
+      parameters: [ { $ref: '#/components/parameters/SupplierId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { description: 供应商不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [供应商管理]
+      summary: 更新供应商
+      operationId: updateSupplier
+      parameters: [ { $ref: '#/components/parameters/SupplierId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSupplierRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 名称冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [供应商管理]
+      summary: 删除供应商
+      operationId: deleteSupplier
+      parameters: [ { $ref: '#/components/parameters/SupplierId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/suppliers/{id}/status:
+    patch:
+      tags: [供应商管理]
+      summary: 变更供应商状态
+      operationId: updateSupplierStatus
+      parameters: [ { $ref: '#/components/parameters/SupplierId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 仓库管理 ──
+  /api/warehouses:
+    post:
+      tags: [仓库管理]
+      summary: 创建仓库
+      operationId: createWarehouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWarehouseRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Warehouse' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 名称或编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [仓库管理]
+      summary: 查询仓库列表
+      operationId: listWarehouses
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: type, in: query, required: false, schema: { $ref: '#/components/schemas/WarehouseType' } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/WarehouseListResponse' } } } }
+  /api/warehouses/{id}:
+    get:
+      tags: [仓库管理]
+      summary: 查询仓库详情
+      operationId: getWarehouseById
+      parameters: [ { $ref: '#/components/parameters/WarehouseId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Warehouse' } } } }
+        '404': { description: 仓库不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [仓库管理]
+      summary: 更新仓库
+      operationId: updateWarehouse
+      parameters: [ { $ref: '#/components/parameters/WarehouseId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateWarehouseRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Warehouse' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 名称冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [仓库管理]
+      summary: 删除仓库
+      operationId: deleteWarehouse
+      parameters: [ { $ref: '#/components/parameters/WarehouseId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/warehouses/{id}/status:
+    patch:
+      tags: [仓库管理]
+      summary: 变更仓库状态
+      operationId: updateWarehouseStatus
+      parameters: [ { $ref: '#/components/parameters/WarehouseId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Warehouse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 库区管理 ──
+  /api/zones:
+    post:
+      tags: [库区管理]
+      summary: 创建库区
+      operationId: createZone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateZoneRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/Zone' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [库区管理]
+      summary: 查询库区列表
+      operationId: listZones
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: warehouseId, in: query, required: false, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/ZoneListResponse' } } } }
+  /api/zones/{id}:
+    get:
+      tags: [库区管理]
+      summary: 查询库区详情
+      operationId: getZoneById
+      parameters: [ { $ref: '#/components/parameters/ZoneId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/Zone' } } } }
+        '404': { description: 库区不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [库区管理]
+      summary: 更新库区
+      operationId: updateZone
+      parameters: [ { $ref: '#/components/parameters/ZoneId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateZoneRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Zone' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [库区管理]
+      summary: 删除库区
+      operationId: deleteZone
+      parameters: [ { $ref: '#/components/parameters/ZoneId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/zones/{id}/status:
+    patch:
+      tags: [库区管理]
+      summary: 变更库区状态
+      operationId: updateZoneStatus
+      parameters: [ { $ref: '#/components/parameters/ZoneId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/Zone' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  # ── 托盘类型管理 ──
+  /api/pallet-types:
+    post:
+      tags: [托盘类型管理]
+      summary: 创建托盘类型
+      operationId: createPalletType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePalletTypeRequest' }
+      responses:
+        '201': { description: 创建成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletType' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: 编码冲突, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    get:
+      tags: [托盘类型管理]
+      summary: 查询托盘类型列表
+      operationId: listPalletTypes
+      parameters:
+        - { name: keyword, in: query, required: false, schema: { type: string, maxLength: 128 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletTypeListResponse' } } } }
+  /api/pallet-types/{id}:
+    get:
+      tags: [托盘类型管理]
+      summary: 查询托盘类型详情
+      operationId: getPalletTypeById
+      parameters: [ { $ref: '#/components/parameters/PalletTypeId' } ]
+      responses:
+        '200': { description: 查询成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletType' } } } }
+        '404': { description: 托盘类型不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    put:
+      tags: [托盘类型管理]
+      summary: 更新托盘类型
+      operationId: updatePalletType
+      parameters: [ { $ref: '#/components/parameters/PalletTypeId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePalletTypeRequest' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletType' } } } }
+        '400': { description: 校验失败, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    delete:
+      tags: [托盘类型管理]
+      summary: 删除托盘类型
+      operationId: deletePalletType
+      parameters: [ { $ref: '#/components/parameters/PalletTypeId' } ]
+      responses:
+        '204': { description: 删除成功 }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/pallet-types/{id}/status:
+    patch:
+      tags: [托盘类型管理]
+      summary: 变更托盘类型状态
+      operationId: updatePalletTypeStatus
+      parameters: [ { $ref: '#/components/parameters/PalletTypeId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200': { description: 变更成功, content: { application/json: { schema: { $ref: '#/components/schemas/PalletType' } } } }
+        '404': { description: 不存在, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
 components:
   parameters:
     UserId:
@@ -893,6 +1194,46 @@ components:
       name: id
       in: path
       description: 顾客 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    SupplierId:
+      name: id
+      in: path
+      description: 供应商 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    WarehouseId:
+      name: id
+      in: path
+      description: 仓库 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    ZoneId:
+      name: id
+      in: path
+      description: 库区 ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    PalletTypeId:
+      name: id
+      in: path
+      description: 托盘类型 ID
       required: true
       schema:
         type: integer
@@ -1834,6 +2175,241 @@ components:
           type: integer
           description: 总页数
           example: 1
+
+    # ──────────────────────────────────────────────
+    # 共享 / WMS 主数据 Schemas
+    # ──────────────────────────────────────────────
+    UpdateStatusRequest:
+      type: object
+      description: 通用状态变更请求体（0=禁用,1=启用）
+      required: [status]
+      properties:
+        status: { type: integer, enum: [0, 1], example: 0 }
+
+    WarehouseType:
+      type: string
+      description: "仓库类型：RAW=原料库, SEMI=半成品库, FINISHED=成品库"
+      enum: [RAW, SEMI, FINISHED]
+      example: RAW
+
+    # 供应商
+    CreateSupplierRequest:
+      type: object
+      required: [code, name, address]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "SUP-001" }
+        name: { type: string, minLength: 2, maxLength: 128, example: "中塑原料供应有限公司" }
+        address: { type: string, minLength: 2, maxLength: 255, example: "宁波市北仑区化工园区 1 号" }
+        contact: { type: string, maxLength: 64 }
+        phone: { type: string, maxLength: 32 }
+        email: { type: string, format: email, maxLength: 128 }
+        remark: { type: string, maxLength: 500 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+    UpdateSupplierRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 128 }
+        address: { type: string, minLength: 2, maxLength: 255 }
+        contact: { type: string, maxLength: 64 }
+        phone: { type: string, maxLength: 32 }
+        email: { type: string, format: email, maxLength: 128 }
+        remark: { type: string, maxLength: 500 }
+    Supplier:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        address: { type: string }
+        contact: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        remark: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    SupplierSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        address: { type: string }
+        contact: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    SupplierListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/SupplierSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 仓库
+    CreateWarehouseRequest:
+      type: object
+      required: [code, name, type]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "WH-RAW" }
+        name: { type: string, minLength: 2, maxLength: 128, example: "原料一号库" }
+        type: { $ref: '#/components/schemas/WarehouseType' }
+        status: { type: integer, enum: [0, 1], default: 1 }
+        remark: { type: string, maxLength: 500 }
+    UpdateWarehouseRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 128 }
+        type: { $ref: '#/components/schemas/WarehouseType' }
+        remark: { type: string, maxLength: 500 }
+    Warehouse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/WarehouseType' }
+        status: { type: integer, enum: [0, 1] }
+        remark: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    WarehouseSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/WarehouseType' }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    WarehouseListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/WarehouseSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 库区（隶属仓库）
+    CreateZoneRequest:
+      type: object
+      required: [warehouseId, code, name]
+      properties:
+        warehouseId: { type: integer, format: int64, description: 所属仓库 ID }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "A" }
+        name: { type: string, minLength: 1, maxLength: 64, example: "A 存储区" }
+        type: { type: string, maxLength: 32, description: "如 存储/拣货/暂存" }
+        status: { type: integer, enum: [0, 1], default: 1 }
+        remark: { type: string, maxLength: 500 }
+    UpdateZoneRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        type: { type: string, maxLength: 32 }
+        remark: { type: string, maxLength: 500 }
+    Zone:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        warehouseId: { type: integer, format: int64 }
+        warehouseName: { type: string, nullable: true, description: 所属仓库名称（关联查询） }
+        code: { type: string }
+        name: { type: string }
+        type: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        remark: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    ZoneSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        warehouseId: { type: integer, format: int64 }
+        warehouseName: { type: string, nullable: true }
+        code: { type: string }
+        name: { type: string }
+        type: { type: string, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    ZoneListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ZoneSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    # 托盘类型（ISO 规格）
+    CreatePalletTypeRequest:
+      type: object
+      required: [code, name, length, width]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', example: "ISO-A" }
+        name: { type: string, minLength: 1, maxLength: 64, example: "大托盘 1200x1000" }
+        length: { type: number, description: 长(mm), example: 1200 }
+        width: { type: number, description: 宽(mm), example: 1000 }
+        tareWeight: { type: number, description: 皮重(kg) }
+        maxLoad: { type: number, description: 最大载重(kg) }
+        maxStack: { type: integer, description: 最大堆叠层 }
+        status: { type: integer, enum: [0, 1], default: 1 }
+        remark: { type: string, maxLength: 500 }
+    UpdatePalletTypeRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        length: { type: number }
+        width: { type: number }
+        tareWeight: { type: number }
+        maxLoad: { type: number }
+        maxStack: { type: integer }
+        remark: { type: string, maxLength: 500 }
+    PalletType:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        length: { type: number }
+        width: { type: number }
+        tareWeight: { type: number, nullable: true }
+        maxLoad: { type: number, nullable: true }
+        maxStack: { type: integer, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        remark: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdBy: { type: integer, format: int64, nullable: true }
+        updatedBy: { type: integer, format: int64, nullable: true }
+    PalletTypeSummary:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        length: { type: number }
+        width: { type: number }
+        maxLoad: { type: number, nullable: true }
+        maxStack: { type: integer, nullable: true }
+        status: { type: integer, enum: [0, 1] }
+        createdAt: { type: string, format: date-time }
+    PalletTypeListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/PalletTypeSummary' } }
+        total: { type: integer, format: int64 }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
 
     # ──────────────────────────────────────────────
     # 错误响应 Schema
