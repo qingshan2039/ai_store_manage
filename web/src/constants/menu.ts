@@ -6,6 +6,7 @@ import {
   DashboardOutlined,
   SettingOutlined,
   TeamOutlined,
+  ApartmentOutlined,
   DatabaseOutlined,
   InboxOutlined,
 } from '@ant-design/icons';
@@ -31,6 +32,7 @@ export const menuConfig: MenuItemConfig[] = [
     icon: React.createElement(SettingOutlined),
     children: [
       { key: '/system/users', label: '用户管理', icon: React.createElement(TeamOutlined) },
+      { key: '/system/departments', label: '部门管理', icon: React.createElement(ApartmentOutlined) },
     ],
   },
   {

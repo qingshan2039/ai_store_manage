@@ -18,6 +18,7 @@ const breadcrumbNameMap: Record<string, string> = {
   '/dashboard': '工作台',
   '/system': '系统管理',
   '/system/users': '用户管理',
+  '/system/departments': '部门管理',
   '/base': '基础数据',
   '/base/products': '商品管理',
   '/base/warehouses': '仓库管理',
