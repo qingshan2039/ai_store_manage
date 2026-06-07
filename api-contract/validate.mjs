@@ -19,6 +19,12 @@ const REQUIRED_OPERATIONS = [
   ['put', '/api/departments/{id}', 'updateDepartment'],
   ['delete', '/api/departments/{id}', 'deleteDepartment'],
   ['patch', '/api/departments/{id}/status', 'updateDepartmentStatus'],
+  ['post', '/api/customers', 'createCustomer'],
+  ['get', '/api/customers', 'listCustomers'],
+  ['get', '/api/customers/{id}', 'getCustomerById'],
+  ['put', '/api/customers/{id}', 'updateCustomer'],
+  ['delete', '/api/customers/{id}', 'deleteCustomer'],
+  ['patch', '/api/customers/{id}/status', 'updateCustomerStatus'],
 ];
 
 function fail(msg) {
