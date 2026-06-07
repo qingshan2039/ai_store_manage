@@ -107,4 +107,28 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicateDriverCheckin() {
         return new DuplicateResourceException("DUPLICATE_DRIVER_CHECKIN", "该司机当天已有打卡记录");
     }
+
+    public static DuplicateResourceException duplicatePackagingLevelSeq() {
+        return new DuplicateResourceException("DUPLICATE_PACKAGING_LEVEL_SEQ", "同一 SKU 下该层级序号已存在");
+    }
+
+    public static DuplicateResourceException duplicatePackagingRelation() {
+        return new DuplicateResourceException("DUPLICATE_PACKAGING_RELATION", "该父子层包装关系已存在");
+    }
+
+    public static DuplicateResourceException duplicateBarcode() {
+        return new DuplicateResourceException("DUPLICATE_BARCODE", "条码已存在");
+    }
+
+    public static DuplicateResourceException duplicateUnitConversion() {
+        return new DuplicateResourceException("DUPLICATE_UNIT_CONVERSION", "该 SKU 的该单位换算已存在");
+    }
+
+    public static DuplicateResourceException duplicateLocationCode() {
+        return new DuplicateResourceException("DUPLICATE_LOCATION_CODE", "同一仓库下库位编码已存在");
+    }
+
+    public static DuplicateResourceException duplicateLpnCode() {
+        return new DuplicateResourceException("DUPLICATE_LPN_CODE", "托盘号已存在");
+    }
 }

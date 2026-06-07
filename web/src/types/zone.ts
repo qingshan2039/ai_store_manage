@@ -49,8 +49,9 @@ export interface CreateZoneRequest {
   status?: 0 | 1;
 }
 
-/** 更新库区请求（warehouseId/code 不可改，状态走独立接口） */
+/** 更新库区请求（warehouseId 不可改；code 可改，仓库内唯一；状态走独立接口） */
 export interface UpdateZoneRequest {
+  code?: string;
   name?: string;
   type?: string;
   remark?: string;

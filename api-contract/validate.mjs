@@ -61,6 +61,24 @@ const REQUIRED_OPERATIONS = [
   ['put', '/api/driver-checkins/{id}', 'updateDriverCheckin'],
   ['delete', '/api/driver-checkins/{id}', 'deleteDriverCheckin'],
   ['post', '/api/files', 'uploadFile'],
+  // 包装与条码 / 库存与托盘
+  ['post', '/api/packaging-levels', 'createPackagingLevel'],
+  ['get', '/api/packaging-levels', 'listPackagingLevels'],
+  ['post', '/api/packaging-relations', 'createPackagingRelation'],
+  ['get', '/api/packaging-relations', 'listPackagingRelations'],
+  ['post', '/api/barcodes', 'createBarcode'],
+  ['get', '/api/barcodes', 'listBarcodes'],
+  ['post', '/api/unit-conversions', 'createUnitConversion'],
+  ['get', '/api/unit-conversions', 'listUnitConversions'],
+  ['post', '/api/item-images', 'createItemImage'],
+  ['get', '/api/item-images', 'listItemImages'],
+  ['post', '/api/locations', 'createLocation'],
+  ['get', '/api/locations', 'listLocations'],
+  ['post', '/api/lpns', 'createLpn'],
+  ['get', '/api/lpns', 'listLpns'],
+  ['post', '/api/inventory', 'createInventory'],
+  ['get', '/api/inventory', 'listInventory'],
+  ['get', '/api/inventory/summary', 'getInventorySummary'],
 ];
 
 /** SKU item_type 枚举（原料/半成品/成品） */
@@ -68,6 +86,12 @@ const EXPECTED_ITEM_TYPES = ['RAW', 'SEMI', 'FINISHED'];
 
 /** 打卡出勤状态枚举（正常/迟到/缺勤/请假） */
 const EXPECTED_CHECKIN_STATUS = ['NORMAL', 'LATE', 'ABSENT', 'LEAVE'];
+
+/** 条码类型枚举 */
+const EXPECTED_BARCODE_TYPES = ['EAN13', 'ITF14', 'SSCC', 'OTHER'];
+
+/** 托盘状态枚举（在库/在途/空置） */
+const EXPECTED_LPN_STATUS = ['IN_STOCK', 'IN_TRANSIT', 'EMPTY'];
 
 function fail(msg) {
   console.error('✗ ' + msg);
@@ -108,6 +132,18 @@ for (const t of EXPECTED_CHECKIN_STATUS) {
 // 6) listUsers 支持 departmentType 过滤参数
 const listUsersParams = (api.paths?.['/api/users']?.get?.parameters ?? []).map((p) => p.name);
 if (!listUsersParams.includes('departmentType')) fail('GET /api/users 缺少 departmentType 查询参数');
+
+// 7) 条码类型枚举完整（4 类）
+const barcodeTypeEnum = api.components?.schemas?.BarcodeType?.enum ?? [];
+for (const t of EXPECTED_BARCODE_TYPES) {
+  if (!barcodeTypeEnum.includes(t)) fail(`BarcodeType 枚举缺少 ${t}`);
+}
+
+// 8) 托盘状态枚举完整（3 类）
+const lpnStatusEnum = api.components?.schemas?.LpnStatus?.enum ?? [];
+for (const t of EXPECTED_LPN_STATUS) {
+  if (!lpnStatusEnum.includes(t)) fail(`LpnStatus 枚举缺少 ${t}`);
+}
 
 const paths = Object.keys(api.paths ?? {}).length;
 const schemas = Object.keys(api.components?.schemas ?? {}).length;

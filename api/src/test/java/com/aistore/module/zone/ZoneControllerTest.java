@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -118,5 +119,33 @@ class ZoneControllerTest extends AbstractPostgresTest {
 
         mockMvc.perform(delete("/api/zones/" + id)).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/zones/" + id)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void update_changesCode() throws Exception {
+        int whId = createWarehouse("WH-Z7", "库区测试仓G");
+        String body = mockMvc.perform(post("/api/zones").contentType(MediaType.APPLICATION_JSON)
+                        .content(utf8("{\"warehouseId\":" + whId + ",\"code\":\"Z-A\",\"name\":\"区一\"}")))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        int id = JsonPath.read(body, "$.id");
+        mockMvc.perform(put("/api/zones/" + id).contentType(MediaType.APPLICATION_JSON).content(utf8("{\"code\":\"Z-A2\"}")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("Z-A2"));
+    }
+
+    @Test
+    void update_duplicateCodeSameWarehouse_returns409() throws Exception {
+        int whId = createWarehouse("WH-Z8", "库区测试仓H");
+        mockMvc.perform(post("/api/zones").contentType(MediaType.APPLICATION_JSON)
+                        .content(utf8("{\"warehouseId\":" + whId + ",\"code\":\"Z-A\",\"name\":\"区一\"}")))
+                .andExpect(status().isCreated());
+        String body2 = mockMvc.perform(post("/api/zones").contentType(MediaType.APPLICATION_JSON)
+                        .content(utf8("{\"warehouseId\":" + whId + ",\"code\":\"Z-B\",\"name\":\"区二\"}")))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        int id2 = JsonPath.read(body2, "$.id");
+        // 把 Z-B 改成已存在的 Z-A → 409
+        mockMvc.perform(put("/api/zones/" + id2).contentType(MediaType.APPLICATION_JSON).content(utf8("{\"code\":\"Z-A\"}")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_ZONE_CODE"));
     }
 }

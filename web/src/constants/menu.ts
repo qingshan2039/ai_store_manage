@@ -11,6 +11,7 @@ import {
   InboxOutlined,
   GoldOutlined,
   CarOutlined,
+  BarcodeOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -71,11 +72,26 @@ export const menuConfig: MenuItemConfig[] = [
     ],
   },
   {
+    key: '/packaging',
+    label: '包装与条码',
+    icon: React.createElement(BarcodeOutlined),
+    children: [
+      { key: '/packaging/levels', label: '包装层级' },
+      { key: '/packaging/relations', label: '包装关系' },
+      { key: '/packaging/barcodes', label: '条码管理' },
+      { key: '/packaging/unit-conversions', label: '计量换算' },
+      { key: '/packaging/images', label: '物料图片' },
+    ],
+  },
+  {
     key: '/inventory',
     label: '库存管理',
     icon: React.createElement(InboxOutlined),
     children: [
-      { key: '/inventory/stock', label: '库存查询' },
+      { key: '/inventory/locations', label: '库位管理' },
+      { key: '/inventory/lpns', label: '托盘实例' },
+      { key: '/inventory/records', label: '库存查询' },
+      { key: '/inventory/summary', label: '库存统计' },
       { key: '/inventory/inbound', label: '入库管理' },
       { key: '/inventory/outbound', label: '出库管理' },
       { key: '/inventory/transfer', label: '调拨管理' },

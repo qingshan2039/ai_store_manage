@@ -29,6 +29,15 @@ import SkuListPage from '@/pages/sku/SkuListPage';
 import VehicleListPage from '@/pages/vehicle/VehicleListPage';
 import FuelRecordListPage from '@/pages/fuel-record/FuelRecordListPage';
 import DriverCheckinListPage from '@/pages/driver-checkin/DriverCheckinListPage';
+import PackagingLevelListPage from '@/pages/packaging-level/PackagingLevelListPage';
+import PackagingRelationListPage from '@/pages/packaging-relation/PackagingRelationListPage';
+import BarcodeListPage from '@/pages/barcode/BarcodeListPage';
+import UnitConversionListPage from '@/pages/unit-conversion/UnitConversionListPage';
+import ItemImageListPage from '@/pages/item-image/ItemImageListPage';
+import LocationListPage from '@/pages/location/LocationListPage';
+import LpnListPage from '@/pages/lpn/LpnListPage';
+import InventoryListPage from '@/pages/inventory/InventoryListPage';
+import InventorySummaryPage from '@/pages/inventory/InventorySummaryPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -77,8 +86,19 @@ export const routes: RouteObject[] = [
       { path: 'transport/fuel-records', element: <FuelRecordListPage /> },
       { path: 'transport/checkins', element: <DriverCheckinListPage /> },
 
-      /* ── 库存管理（预留） ── */
-      { path: 'inventory/stock', element: <ComingSoon /> },
+      /* ── 包装与条码（Phase B） ── */
+      { path: 'packaging/levels', element: <PackagingLevelListPage /> },
+      { path: 'packaging/relations', element: <PackagingRelationListPage /> },
+      { path: 'packaging/barcodes', element: <BarcodeListPage /> },
+      { path: 'packaging/unit-conversions', element: <UnitConversionListPage /> },
+      { path: 'packaging/images', element: <ItemImageListPage /> },
+
+      /* ── 库存与托盘（Phase C） ── */
+      { path: 'inventory/locations', element: <LocationListPage /> },
+      { path: 'inventory/lpns', element: <LpnListPage /> },
+      { path: 'inventory/records', element: <InventoryListPage /> },
+      { path: 'inventory/summary', element: <InventorySummaryPage /> },
+      /* ── 库存操作（预留） ── */
       { path: 'inventory/inbound', element: <ComingSoon /> },
       { path: 'inventory/outbound', element: <ComingSoon /> },
       { path: 'inventory/transfer', element: <ComingSoon /> },

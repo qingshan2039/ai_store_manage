@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.unitconversion.mapper.UnitConversionMapper">
+
+    <select id="selectConversionPage" resultType="com.aistore.module.unitconversion.entity.UnitConversion">
+        SELECT
+            id, sku_id, from_unit, to_unit, factor, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM unit_conversion
+        WHERE deleted = 0
+        <if test="skuId != null">
+            AND sku_id = #{skuId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sku_id ASC, id ASC
+    </select>
+
+</mapper>

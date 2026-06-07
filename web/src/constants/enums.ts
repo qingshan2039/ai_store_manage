@@ -133,3 +133,38 @@ export const CHECKIN_STATUS_OPTIONS = [
   { label: '缺勤', value: 'ABSENT' },
   { label: '请假', value: 'LEAVE' },
 ];
+
+/** 条码类型（对齐契约 BarcodeType） */
+export const BARCODE_TYPE_OPTIONS = [
+  { label: 'EAN13', value: 'EAN13' },
+  { label: 'ITF14', value: 'ITF14' },
+  { label: 'SSCC', value: 'SSCC' },
+  { label: '其他', value: 'OTHER' },
+];
+
+/** 是/否（0/1 布尔标识，如 isFixedQty/isPrimary/isBaseUnit） */
+export const YES_NO_OPTIONS = [
+  { label: '是', value: 1 },
+  { label: '否', value: 0 },
+];
+
+/** 托盘状态（对齐契约 LpnStatus） */
+export const LPN_STATUS_MAP: Record<string, string> = {
+  IN_STOCK: '在库',
+  IN_TRANSIT: '在途',
+  EMPTY: '空置',
+};
+
+export const LPN_STATUS_OPTIONS = [
+  { label: '在库', value: 'IN_STOCK' },
+  { label: '在途', value: 'IN_TRANSIT' },
+  { label: '空置', value: 'EMPTY' },
+];
+
+/** 库位类型（常用值，可按需扩展） */
+export const LOCATION_TYPE_OPTIONS = [
+  { label: '货架', value: '货架' },
+  { label: '地堆', value: '地堆' },
+  { label: '暂存', value: '暂存' },
+  { label: '月台', value: '月台' },
+];

@@ -69,4 +69,36 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException driverCheckinNotFound() {
         return new ResourceNotFoundException("DRIVER_CHECKIN_NOT_FOUND", "打卡记录不存在");
     }
+
+    public static ResourceNotFoundException packagingLevelNotFound() {
+        return new ResourceNotFoundException("PACKAGING_LEVEL_NOT_FOUND", "包装层级不存在");
+    }
+
+    public static ResourceNotFoundException packagingRelationNotFound() {
+        return new ResourceNotFoundException("PACKAGING_RELATION_NOT_FOUND", "包装关系不存在");
+    }
+
+    public static ResourceNotFoundException barcodeNotFound() {
+        return new ResourceNotFoundException("BARCODE_NOT_FOUND", "条码不存在");
+    }
+
+    public static ResourceNotFoundException unitConversionNotFound() {
+        return new ResourceNotFoundException("UNIT_CONVERSION_NOT_FOUND", "计量换算不存在");
+    }
+
+    public static ResourceNotFoundException itemImageNotFound() {
+        return new ResourceNotFoundException("ITEM_IMAGE_NOT_FOUND", "物料图片不存在");
+    }
+
+    public static ResourceNotFoundException locationNotFound() {
+        return new ResourceNotFoundException("LOCATION_NOT_FOUND", "库位不存在");
+    }
+
+    public static ResourceNotFoundException lpnNotFound() {
+        return new ResourceNotFoundException("LPN_NOT_FOUND", "托盘实例不存在");
+    }
+
+    public static ResourceNotFoundException inventoryNotFound() {
+        return new ResourceNotFoundException("INVENTORY_NOT_FOUND", "库存记录不存在");
+    }
 }

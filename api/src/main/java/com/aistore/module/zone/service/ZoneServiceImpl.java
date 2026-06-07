@@ -82,6 +82,14 @@ public class ZoneServiceImpl implements ZoneService {
         if (entity == null) {
             throw ResourceNotFoundException.zoneNotFound();
         }
+        // 编码可改：同一仓库内唯一
+        if (request.getCode() != null && !request.getCode().equals(entity.getCode())
+                && zoneMapper.selectCount(new LambdaQueryWrapper<Zone>()
+                .eq(Zone::getWarehouseId, entity.getWarehouseId())
+                .eq(Zone::getCode, request.getCode())
+                .ne(Zone::getId, id)) > 0) {
+            throw DuplicateResourceException.duplicateZoneCode();
+        }
         zoneConverter.updateEntity(entity, request);
         zoneMapper.updateById(entity);
         return zoneConverter.toVO(zoneMapper.selectById(id), warehouseName(entity.getWarehouseId()));
