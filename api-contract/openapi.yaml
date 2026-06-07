@@ -3173,6 +3173,7 @@ components:
     UpdateZoneRequest:
       type: object
       properties:
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', description: 库区编码（仓库内唯一，可改） }
         name: { type: string, minLength: 1, maxLength: 64 }
         type: { type: string, maxLength: 32 }
         remark: { type: string, maxLength: 500 }
@@ -3774,6 +3775,7 @@ components:
     UpdateLocationRequest:
       type: object
       properties:
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9\-]+$', description: 库位编码（仓库内唯一，可改） }
         zoneId: { type: integer, format: int64 }
         locType: { type: string, maxLength: 32 }
     Location:
@@ -3913,7 +3915,8 @@ components:
         id: { type: integer, format: int64 }
         skuId: { type: integer, format: int64 }
         skuName: { type: string, nullable: true }
-        lpnCode: { type: string, nullable: true }
+        lpnCode: { type: string, nullable: true, description: 托盘名称（SSCC 托盘号） }
+        palletTypeName: { type: string, nullable: true, description: 托盘类型名（经 LPN 关联） }
         locationCode: { type: string, nullable: true }
         lotNo: { type: string, nullable: true }
         qtyOnHand: { type: number }
