@@ -1,0 +1,14 @@
+{
+  "name": "api-contract",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI Store Manage OpenAPI 契约与校验",
+  "scripts": {
+    "test": "node validate.mjs",
+    "validate": "node validate.mjs"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1"
+  }
+}

@@ -1,28 +1,11 @@
+# 测试环境配置
+# 连接 dev PostgreSQL 容器（ai-store-pg:5433）内的独立测试库 ai_store_test（与 dev 业务库隔离），
+# Flyway 在该测试库上自动迁移；其余配置继承 application.yml。
 spring:
-  # 测试环境禁用 Flyway：迁移脚本为 MySQL 方言，不在 H2 上执行
-  flyway:
-    enabled: false
-
-  # 使用 H2 内存数据库，替代 MySQL，保证 CI/单元测试无需真实数据库连接
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  # 关闭 Spring Security 自动配置，避免 test context 拉取额外 bean（可选）
-  # 如需保留 Security Bean，删除以下两行
-  # autoconfigure:
-  #   exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-
-# MyBatis-Plus 在 H2 MODE=MySQL 下兼容性良好，无需额外配置
-mybatis-plus:
-  global-config:
-    db-config:
-      id-type: auto
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+    url: jdbc:postgresql://localhost:5433/ai_store_test
+    username: ${POSTGRES_USER:ai_store}
+    password: ${POSTGRES_PASSWORD:ai_store_pwd}
 
 logging:
   level:

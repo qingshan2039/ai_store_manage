@@ -2,16 +2,16 @@ package com.aistore;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
+/**
+ * 上下文加载测试：验证 Spring ApplicationContext 在真实 PostgreSQL（测试库 ai_store_test）上
+ * 正常启动，且 Flyway 迁移成功执行。
+ */
 @SpringBootTest
-@ActiveProfiles("test")
-class AiStoreManageApplicationTests {
+class AiStoreManageApplicationTests extends AbstractPostgresTest {
 
     @Test
     void contextLoads() {
-        // 验证 Spring ApplicationContext 可以正常启动
-        // 使用 application-test.yml 中的 H2 内存数据库，无需连接 MySQL
+        // 能加载即说明数据源、Flyway 迁移、MyBatis-Plus、各模块 Bean 装配均正常
     }
-
 }
