@@ -4,6 +4,8 @@ import {
   DEPARTMENT_TYPE_OPTIONS,
   DEPARTMENT_STATUS,
   DEPARTMENT_STATUS_OPTIONS,
+  CHECKIN_STATUS_MAP,
+  CHECKIN_STATUS_OPTIONS,
 } from './enums';
 
 describe('部门类型枚举', () => {
@@ -27,5 +29,17 @@ describe('部门状态枚举', () => {
     expect(DEPARTMENT_STATUS.ENABLED).toBe(1);
     expect(DEPARTMENT_STATUS.DISABLED).toBe(0);
     expect(DEPARTMENT_STATUS_OPTIONS).toHaveLength(2);
+  });
+});
+
+describe('打卡出勤状态枚举（对齐契约 CheckinStatus）', () => {
+  const EXPECTED = ['NORMAL', 'LATE', 'ABSENT', 'LEAVE'];
+
+  it('4 种状态齐全（map 与 options 一致）', () => {
+    expect(CHECKIN_STATUS_OPTIONS).toHaveLength(4);
+    EXPECTED.forEach((s) => {
+      expect(CHECKIN_STATUS_MAP[s]).toBeTruthy();
+      expect(CHECKIN_STATUS_OPTIONS.some((o) => o.value === s)).toBe(true);
+    });
   });
 });

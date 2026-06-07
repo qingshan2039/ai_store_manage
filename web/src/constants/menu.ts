@@ -10,6 +10,7 @@ import {
   DatabaseOutlined,
   InboxOutlined,
   GoldOutlined,
+  CarOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -57,6 +58,16 @@ export const menuConfig: MenuItemConfig[] = [
       { key: '/material/categories', label: '物料品类' },
       { key: '/material/spus', label: '物料 SPU' },
       { key: '/material/skus', label: '物料 SKU' },
+    ],
+  },
+  {
+    key: '/transport',
+    label: '运输管理',
+    icon: React.createElement(CarOutlined),
+    children: [
+      { key: '/transport/vehicles', label: '车辆管理' },
+      { key: '/transport/fuel-records', label: '打油记录' },
+      { key: '/transport/checkins', label: '司机打卡' },
     ],
   },
   {

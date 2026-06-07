@@ -106,6 +106,8 @@ export interface UserQueryParams {
   phoneNumber?: string;
   status?: 0 | 1;
   departmentId?: number;
+  /** 按所属部门 type 过滤（如 TRANSPORT/WAREHOUSE/PRODUCTION） */
+  departmentType?: string;
   jobTitle?: string;
   gender?: 0 | 1 | 2;
   createdAtStart?: string;

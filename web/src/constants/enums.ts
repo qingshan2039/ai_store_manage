@@ -118,3 +118,18 @@ export const ITEM_TYPE_OPTIONS = [
   { label: '半成品', value: 'SEMI' },
   { label: '成品', value: 'FINISHED' },
 ];
+
+/** 打卡出勤状态（对齐契约 CheckinStatus） */
+export const CHECKIN_STATUS_MAP: Record<string, { label: string; color: string }> = {
+  NORMAL: { label: '正常', color: 'green' },
+  LATE: { label: '迟到', color: 'orange' },
+  ABSENT: { label: '缺勤', color: 'red' },
+  LEAVE: { label: '请假', color: 'blue' },
+};
+
+export const CHECKIN_STATUS_OPTIONS = [
+  { label: '正常', value: 'NORMAL' },
+  { label: '迟到', value: 'LATE' },
+  { label: '缺勤', value: 'ABSENT' },
+  { label: '请假', value: 'LEAVE' },
+];
