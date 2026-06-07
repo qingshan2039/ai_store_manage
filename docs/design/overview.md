@@ -52,7 +52,8 @@ ai_store_manage/
 | 托盘类型管理（ISO 规格） | ✅ 已实现 | [features/pallet.md](../features/pallet.md) |
 | 物料目录（品类 / SPU / SKU） | ✅ 已实现（Phase A） | [features/material-catalog.md](../features/material-catalog.md) |
 | 物料包装与条码（层级/关系/条码/换算/图片） | ✅ 已实现（Phase B） | [features/packaging-barcode.md](../features/packaging-barcode.md) |
-| 库存 / 托盘 LPN(查询/出入库/调拨/盘点) | 🚧 预留（Phase C） | — |
+| 库存与托盘（库位/LPN/库存 + 库存统计） | ✅ 已实现（Phase C） | [features/inventory-lpn.md](../features/inventory-lpn.md) |
+| 库存操作（入库/出库/调拨/盘点） | 🚧 预留 | — |
 
 ## 6. 统一约定
 
@@ -66,7 +67,7 @@ ai_store_manage/
 
 ## 7. 数据库初始化与迁移（Flyway）
 
-- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子;`V2`/`V3` 顾客主表与送货地址子表;[`V4__add_master_data.sql`](../../api/src/main/resources/db/migration/V4__add_master_data.sql) 新增 `supplier`、`warehouse`、`zone`、`pallet_type` 四张主数据表；[`V5__add_material_catalog.sql`](../../api/src/main/resources/db/migration/V5__add_material_catalog.sql) 新增 `material_category`(含 5 品类种子)、`spu`、`sku`(spec 为 jsonb) 物料目录三表；[`V6__add_packaging_barcode.sql`](../../api/src/main/resources/db/migration/V6__add_packaging_barcode.sql) 新增 `packaging_level`/`packaging_relation`/`barcode`/`unit_conversion`/`item_image` 包装与条码五表。
+- 版本化迁移脚本:`api/src/main/resources/db/migration/V<n>__<desc>.sql`(Flyway 默认位置)。当前基线 [`V1__init_schema.sql`](../../api/src/main/resources/db/migration/V1__init_schema.sql) 含 `sys_user`、`sys_department` 两表与部门种子;`V2`/`V3` 顾客主表与送货地址子表;[`V4__add_master_data.sql`](../../api/src/main/resources/db/migration/V4__add_master_data.sql) 新增 `supplier`、`warehouse`、`zone`、`pallet_type` 四张主数据表；[`V5__add_material_catalog.sql`](../../api/src/main/resources/db/migration/V5__add_material_catalog.sql) 新增 `material_category`(含 5 品类种子)、`spu`、`sku`(spec 为 jsonb) 物料目录三表；[`V6__add_packaging_barcode.sql`](../../api/src/main/resources/db/migration/V6__add_packaging_barcode.sql) 新增 `packaging_level`/`packaging_relation`/`barcode`/`unit_conversion`/`item_image` 包装与条码五表；[`V7__add_inventory_lpn.sql`](../../api/src/main/resources/db/migration/V7__add_inventory_lpn.sql) 新增 `location`/`lpn`/`inventory` 库存与托盘三表。
 - 启动自动迁移:应用启动时 Flyway 自动执行待应用的迁移,以 `flyway_schema_history` 表跟踪。
 - 兼容已有库:`baseline-on-migrate: true`——对"已有表但无 Flyway 历史"的库先建立基线(baseline)再迁移,避免首次报错;全新空库则直接执行 V1 建表灌种子。
 - 演进规则:**已发布的迁移文件不可修改**;新的 schema 变更一律新增递增版本 `V2__xxx.sql`、`V3__xxx.sql`……
