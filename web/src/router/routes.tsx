@@ -31,6 +31,10 @@ import PackagingRelationListPage from '@/pages/packaging-relation/PackagingRelat
 import BarcodeListPage from '@/pages/barcode/BarcodeListPage';
 import UnitConversionListPage from '@/pages/unit-conversion/UnitConversionListPage';
 import ItemImageListPage from '@/pages/item-image/ItemImageListPage';
+import LocationListPage from '@/pages/location/LocationListPage';
+import LpnListPage from '@/pages/lpn/LpnListPage';
+import InventoryListPage from '@/pages/inventory/InventoryListPage';
+import InventorySummaryPage from '@/pages/inventory/InventorySummaryPage';
 
 /** 待开发占位页 */
 const ComingSoon: React.FC = () => (
@@ -81,8 +85,12 @@ export const routes: RouteObject[] = [
       { path: 'packaging/unit-conversions', element: <UnitConversionListPage /> },
       { path: 'packaging/images', element: <ItemImageListPage /> },
 
-      /* ── 库存管理（预留） ── */
-      { path: 'inventory/stock', element: <ComingSoon /> },
+      /* ── 库存与托盘（Phase C） ── */
+      { path: 'inventory/locations', element: <LocationListPage /> },
+      { path: 'inventory/lpns', element: <LpnListPage /> },
+      { path: 'inventory/records', element: <InventoryListPage /> },
+      { path: 'inventory/summary', element: <InventorySummaryPage /> },
+      /* ── 库存操作（预留） ── */
       { path: 'inventory/inbound', element: <ComingSoon /> },
       { path: 'inventory/outbound', element: <ComingSoon /> },
       { path: 'inventory/transfer', element: <ComingSoon /> },

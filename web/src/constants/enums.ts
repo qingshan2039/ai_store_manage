@@ -132,3 +132,16 @@ export const YES_NO_OPTIONS = [
   { label: '是', value: 1 },
   { label: '否', value: 0 },
 ];
+
+/** 托盘状态（对齐契约 LpnStatus） */
+export const LPN_STATUS_MAP: Record<string, string> = {
+  IN_STOCK: '在库',
+  IN_TRANSIT: '在途',
+  EMPTY: '空置',
+};
+
+export const LPN_STATUS_OPTIONS = [
+  { label: '在库', value: 'IN_STOCK' },
+  { label: '在途', value: 'IN_TRANSIT' },
+  { label: '空置', value: 'EMPTY' },
+];

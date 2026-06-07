@@ -77,7 +77,10 @@ export const menuConfig: MenuItemConfig[] = [
     label: '库存管理',
     icon: React.createElement(InboxOutlined),
     children: [
-      { key: '/inventory/stock', label: '库存查询' },
+      { key: '/inventory/locations', label: '库位管理' },
+      { key: '/inventory/lpns', label: '托盘实例' },
+      { key: '/inventory/records', label: '库存查询' },
+      { key: '/inventory/summary', label: '库存统计' },
       { key: '/inventory/inbound', label: '入库管理' },
       { key: '/inventory/outbound', label: '出库管理' },
       { key: '/inventory/transfer', label: '调拨管理' },
