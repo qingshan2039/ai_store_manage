@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.zone.mapper.ZoneMapper">
+
+    <select id="selectZonePage" resultType="com.aistore.module.zone.entity.Zone">
+        SELECT
+            id, warehouse_id, code, name, type, remark, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM zone
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="warehouseId != null">
+            AND warehouse_id = #{warehouseId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY warehouse_id ASC, code ASC, id ASC
+    </select>
+
+</mapper>

@@ -29,4 +29,20 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException customerNotFound() {
         return new ResourceNotFoundException("CUSTOMER_NOT_FOUND", "顾客不存在");
     }
+
+    public static ResourceNotFoundException supplierNotFound() {
+        return new ResourceNotFoundException("SUPPLIER_NOT_FOUND", "供应商不存在");
+    }
+
+    public static ResourceNotFoundException warehouseNotFound() {
+        return new ResourceNotFoundException("WAREHOUSE_NOT_FOUND", "仓库不存在");
+    }
+
+    public static ResourceNotFoundException zoneNotFound() {
+        return new ResourceNotFoundException("ZONE_NOT_FOUND", "库区不存在");
+    }
+
+    public static ResourceNotFoundException palletTypeNotFound() {
+        return new ResourceNotFoundException("PALLET_TYPE_NOT_FOUND", "托盘类型不存在");
+    }
 }
