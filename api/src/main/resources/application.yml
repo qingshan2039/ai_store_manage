@@ -5,6 +5,13 @@ spring:
   application:
     name: ai-store-manage-api
 
+  # SQL 自动初始化：启动时执行 schema.sql（幂等：CREATE TABLE IF NOT EXISTS + INSERT IGNORE）
+  # 缺表时自动建表并灌入种子，有表时为无害空操作，不会丢失数据
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+
   # MySQL DataSource
   datasource:
     url: jdbc:mysql://localhost:3306/ai_store_manage?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true

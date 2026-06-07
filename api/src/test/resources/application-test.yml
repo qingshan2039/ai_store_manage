@@ -1,4 +1,9 @@
 spring:
+  # 测试环境禁用 SQL 自动初始化：schema.sql 为 MySQL 方言，不在 H2 上执行
+  sql:
+    init:
+      mode: never
+
   # 使用 H2 内存数据库，替代 MySQL，保证 CI/单元测试无需真实数据库连接
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE

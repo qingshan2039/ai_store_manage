@@ -16,9 +16,7 @@ USE ai_store_manage;
 -- 表: sys_user
 -- 说明: 系统用户表，承载登录、身份认证、权限关联的基础实体
 -- ============================================================
-DROP TABLE IF EXISTS sys_user;
-
-CREATE TABLE sys_user (
+CREATE TABLE IF NOT EXISTS sys_user (
     -- 基础字段
     id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
     employee_no     VARCHAR(32)     NOT NULL                 COMMENT 'HR 分配的工号，如 WH-20260001',
@@ -73,9 +71,7 @@ CREATE TABLE sys_user (
 -- 确保中文按 utf8mb4 写入，避免客户端默认字符集导致种子数据乱码
 SET NAMES utf8mb4;
 
-DROP TABLE IF EXISTS sys_department;
-
-CREATE TABLE sys_department (
+CREATE TABLE IF NOT EXISTS sys_department (
     -- 基础字段
     id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
     name            VARCHAR(64)     NOT NULL                 COMMENT '部门名称',
@@ -110,8 +106,8 @@ CREATE TABLE sys_department (
   COLLATE=utf8mb4_general_ci
   COMMENT='部门表';
 
--- 初始化部门数据（8 类：7 个业务部门 + 管理层）
-INSERT INTO sys_department (name, code, type, status, sort, remark) VALUES
+-- 初始化部门数据（8 类：7 个业务部门 + 管理层）；INSERT IGNORE 保证可重复执行不报错、不重复
+INSERT IGNORE INTO sys_department (name, code, type, status, sort, remark) VALUES
     ('仓储管理部', 'WH',    'WAREHOUSE',  1, 1, '负责仓库收发存管理'),
     ('运输部',     'TRANS', 'TRANSPORT',  1, 2, '负责物流配送与运输'),
     ('销售部',     'SALES', 'SALES',      1, 3, '负责销售与客户管理'),
