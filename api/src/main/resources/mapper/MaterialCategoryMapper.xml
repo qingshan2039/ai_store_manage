@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.category.mapper.MaterialCategoryMapper">
+
+    <select id="selectCategoryPage" resultType="com.aistore.module.category.entity.MaterialCategory">
+        SELECT
+            id, code, name, sort_order, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM material_category
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+</mapper>

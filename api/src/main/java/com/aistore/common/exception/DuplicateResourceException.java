@@ -79,4 +79,24 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException duplicatePalletTypeCode() {
         return new DuplicateResourceException("DUPLICATE_PALLET_TYPE_CODE", "托盘类型编码已存在");
     }
+
+    public static DuplicateResourceException duplicateMaterialCategoryName() {
+        return new DuplicateResourceException("DUPLICATE_MATERIAL_CATEGORY_NAME", "物料品类名称已存在");
+    }
+
+    public static DuplicateResourceException duplicateMaterialCategoryCode() {
+        return new DuplicateResourceException("DUPLICATE_MATERIAL_CATEGORY_CODE", "物料品类编码已存在");
+    }
+
+    public static DuplicateResourceException duplicateSpuName() {
+        return new DuplicateResourceException("DUPLICATE_SPU_NAME", "SPU 名称已存在");
+    }
+
+    public static DuplicateResourceException duplicateSpuCode() {
+        return new DuplicateResourceException("DUPLICATE_SPU_CODE", "SPU 编码已存在");
+    }
+
+    public static DuplicateResourceException duplicateSkuCode() {
+        return new DuplicateResourceException("DUPLICATE_SKU_CODE", "SKU 编码已存在");
+    }
 }

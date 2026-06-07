@@ -37,6 +37,26 @@ async function ensure(path, body, label) {
   return existing;
 }
 
+/** 创建或复用 SPU（按 spuCode），返回带 id 的记录。 */
+async function ensureSpu(spu) {
+  const created = await post('/api/spus', spu);
+  if (!created.__duplicate) {
+    console.log(`  + SPU：${spu.spuCode} ${spu.spuName}`);
+    return created;
+  }
+  const res = await fetch(`${BASE}/api/spus?keyword=${encodeURIComponent(spu.spuCode)}&pageSize=100`);
+  const data = await res.json();
+  const existing = (data.items || []).find((it) => it.spuCode === spu.spuCode) || null;
+  console.log(`  = SPU：${spu.spuCode}（已存在 id=${existing?.id}）`);
+  return existing;
+}
+
+/** 创建或复用 SKU（按 skuCode）。 */
+async function ensureSku(sku) {
+  const created = await post('/api/skus', sku);
+  console.log(`  ${created.__duplicate ? '=' : '+'} SKU：${sku.skuCode} ${sku.skuName}`);
+}
+
 async function main() {
   console.log('▶ 供应商');
   const suppliers = [
@@ -79,6 +99,49 @@ async function main() {
     { code: 'PLT-S', name: '小托盘 800×600', length: 800, width: 600, tareWeight: 12, maxLoad: 500, maxStack: 4, remark: 'ISO6780 半欧托（EUR6）' },
   ];
   for (const p of pallets) await ensure('/api/pallet-types', p, '托盘');
+
+  // ── 物料目录（Phase A）：SPU + SKU（品类由 V5 迁移内置种子）──
+  console.log('▶ 物料目录（SPU + SKU，覆盖 5 类原材料）');
+  // 每个 SPU 下挂若干 SKU；纸管演示"同尺寸不同规格 = 两个 SKU"（需求1）
+  const catalog = [
+    {
+      spu: { spuCode: 'CORE-3IN', spuName: '3寸纸管', categoryCode: 'CORE', baseUnit: 'PCS' },
+      skus: [
+        { skuCode: 'PC-340480-A', skuName: '纸管 340x480x5mm 规格A', itemType: 'RAW', lengthMm: 340, widthMm: 480, thicknessMm: 5, spec: { material: '再生纸', grade: 'A' } },
+        { skuCode: 'PC-340480-B', skuName: '纸管 340x480x5mm 规格B', itemType: 'RAW', lengthMm: 340, widthMm: 480, thicknessMm: 5, spec: { material: '原浆纸', grade: 'B' } },
+      ],
+    },
+    {
+      spu: { spuCode: 'FILM-PE', spuName: 'PE保鲜膜', categoryCode: 'FILM', baseUnit: 'ROLL' },
+      skus: [
+        { skuCode: 'FILM-300', skuName: '保鲜膜 300mm', itemType: 'FINISHED', widthMm: 300, rollLengthM: 300, spec: { material: 'PE' } },
+        { skuCode: 'FILM-450', skuName: '保鲜膜 450mm', itemType: 'FINISHED', widthMm: 450, rollLengthM: 300, spec: { material: 'PE' } },
+      ],
+    },
+    {
+      spu: { spuCode: 'FOIL-STD', spuName: '标准铝箔', categoryCode: 'FOIL', baseUnit: 'ROLL' },
+      skus: [
+        { skuCode: 'FOIL-300', skuName: '铝箔 300mm', itemType: 'RAW', widthMm: 300, rollLengthM: 150, gsm: 40 },
+      ],
+    },
+    {
+      spu: { spuCode: 'PAPER-KRAFT', spuName: '牛皮纸皮', categoryCode: 'PAPER', baseUnit: 'PCS' },
+      skus: [
+        { skuCode: 'PAPER-K-A4', skuName: '牛皮纸皮 A4', itemType: 'RAW', lengthMm: 297, widthMm: 210, gsm: 120 },
+      ],
+    },
+    {
+      spu: { spuCode: 'BAKE-STD', spuName: '标准烘焙纸', categoryCode: 'BAKING', baseUnit: 'PCS' },
+      skus: [
+        { skuCode: 'BAKE-400', skuName: '烘焙纸 400x600', itemType: 'FINISHED', lengthMm: 400, widthMm: 600, gsm: 38 },
+      ],
+    },
+  ];
+  for (const c of catalog) {
+    const spu = await ensureSpu(c.spu);
+    if (!spu) continue;
+    for (const s of c.skus) await ensureSku({ ...s, spuId: spu.id });
+  }
 
   console.log('\n✓ 主数据灌入完成');
 }

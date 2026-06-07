@@ -45,4 +45,16 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException palletTypeNotFound() {
         return new ResourceNotFoundException("PALLET_TYPE_NOT_FOUND", "托盘类型不存在");
     }
+
+    public static ResourceNotFoundException materialCategoryNotFound() {
+        return new ResourceNotFoundException("MATERIAL_CATEGORY_NOT_FOUND", "物料品类不存在");
+    }
+
+    public static ResourceNotFoundException spuNotFound() {
+        return new ResourceNotFoundException("SPU_NOT_FOUND", "SPU 不存在");
+    }
+
+    public static ResourceNotFoundException skuNotFound() {
+        return new ResourceNotFoundException("SKU_NOT_FOUND", "SKU 不存在");
+    }
 }

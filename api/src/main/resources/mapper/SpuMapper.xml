@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aistore.module.spu.mapper.SpuMapper">
+
+    <select id="selectSpuPage" resultType="com.aistore.module.spu.entity.Spu">
+        SELECT
+            id, spu_code, spu_name, category_code, brand, base_unit, status, deleted,
+            created_at, updated_at, created_by, updated_by
+        FROM spu
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (spu_name LIKE CONCAT('%', #{keyword}, '%') OR spu_code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="categoryCode != null and categoryCode != ''">
+            AND category_code = #{categoryCode}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC, id DESC
+    </select>
+
+</mapper>
