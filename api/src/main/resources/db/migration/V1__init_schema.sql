@@ -1,113 +1,90 @@
 -- ============================================================
--- Flyway 基线迁移 V1：初始 schema
+-- Flyway 基线迁移 V1：初始 schema（PostgreSQL）
 -- AI Store Manage - 用户表 + 部门表 + 部门种子数据
--- 数据库: MySQL 8.x / 字符集: utf8mb4 / 排序: utf8mb4_general_ci
 --
 -- 说明：
---   本迁移代表项目引入 Flyway 时的“当前完整 schema”基线。
---   对已存在这些表但无 Flyway 历史的库，借助 baseline-on-migrate 建立基线（本脚本不会重复执行）；
+--   本迁移代表项目当前完整 schema 的基线。
+--   对已存在这些表但无 Flyway 历史的库，借助 baseline-on-migrate 建立基线（本脚本不重复执行）；
 --   对全新空库，本脚本负责建表与灌入部门种子。
 --   今后的 schema 变更请新增 V2__xxx.sql、V3__xxx.sql 等递增迁移，禁止修改已发布的迁移文件。
 -- ============================================================
 
--- ============================================================
--- 表: sys_user
--- 说明: 系统用户表，承载登录、身份认证、权限关联的基础实体
--- ============================================================
+-- ------------------------------------------------------------
+-- 表: sys_user —— 系统用户表
+-- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sys_user (
-    -- 基础字段
-    id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
-    employee_no     VARCHAR(32)     NOT NULL                 COMMENT 'HR 分配的工号，如 WH-20260001',
-    username        VARCHAR(64)     NOT NULL                 COMMENT '登录账号',
-    password        VARCHAR(255)    NOT NULL                 COMMENT '登录密码（BCrypt 加密存储）',
+    id                BIGSERIAL    PRIMARY KEY,
+    employee_no       VARCHAR(32)  NOT NULL,
+    username          VARCHAR(64)  NOT NULL,
+    password          VARCHAR(255) NOT NULL,
+    name              VARCHAR(64)  NOT NULL,
+    nickname          VARCHAR(64),
+    avatar            VARCHAR(512),
+    gender            SMALLINT     NOT NULL DEFAULT 0,
+    phone_number      VARCHAR(20)  NOT NULL,
+    email             VARCHAR(128),
+    job_title         VARCHAR(64),
+    department_id     BIGINT,
+    hide_phone_number BOOLEAN      NOT NULL DEFAULT FALSE,
+    hide_name         BOOLEAN      NOT NULL DEFAULT FALSE,
+    remark            VARCHAR(500),
+    status            SMALLINT     NOT NULL DEFAULT 1,
+    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by        BIGINT,
+    updated_by        BIGINT,
+    deleted           SMALLINT     NOT NULL DEFAULT 0,
+    -- 唯一约束（含 deleted，逻辑删除后允许复用 username / employee_no）
+    CONSTRAINT uk_user_username_deleted    UNIQUE (username, deleted),
+    CONSTRAINT uk_user_employee_no_deleted UNIQUE (employee_no, deleted)
+);
 
-    -- 业务字段
-    name            VARCHAR(64)     NOT NULL                 COMMENT '员工真实姓名',
-    nickname        VARCHAR(64)     DEFAULT NULL             COMMENT '系统内显示名称',
-    avatar          VARCHAR(512)    DEFAULT NULL             COMMENT '头像图片 URL',
-    gender          TINYINT         NOT NULL DEFAULT 0       COMMENT '性别：0=未知，1=男，2=女',
-    phone_number    VARCHAR(20)     NOT NULL                 COMMENT '手机号码',
-    email           VARCHAR(128)    DEFAULT NULL             COMMENT '企业邮箱',
-    job_title       VARCHAR(64)     DEFAULT NULL             COMMENT '职位名称',
-    department_id   BIGINT          DEFAULT NULL             COMMENT '所属部门 ID',
-    hide_phone_number TINYINT(1)    NOT NULL DEFAULT 0       COMMENT '是否隐藏手机号：0=否，1=是',
-    hide_name       TINYINT(1)      NOT NULL DEFAULT 0       COMMENT '是否隐藏姓名：0=否，1=是',
-    remark          VARCHAR(500)    DEFAULT NULL             COMMENT '管理员备注',
+CREATE INDEX IF NOT EXISTS idx_user_phone_number  ON sys_user (phone_number);
+CREATE INDEX IF NOT EXISTS idx_user_department_id ON sys_user (department_id);
+CREATE INDEX IF NOT EXISTS idx_user_status        ON sys_user (status);
+CREATE INDEX IF NOT EXISTS idx_user_name          ON sys_user (name);
 
-    -- 状态字段
-    status          TINYINT         NOT NULL DEFAULT 1       COMMENT '账号状态：0=禁用，1=启用',
+COMMENT ON TABLE  sys_user            IS '系统用户表';
+COMMENT ON COLUMN sys_user.gender     IS '性别：0=未知，1=男，2=女';
+COMMENT ON COLUMN sys_user.status     IS '账号状态：0=禁用，1=启用';
+COMMENT ON COLUMN sys_user.deleted    IS '逻辑删除：0=未删除，1=已删除';
 
-    -- 审计字段
-    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP          COMMENT '创建时间',
-    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    created_by      BIGINT          DEFAULT NULL             COMMENT '创建人 ID',
-    updated_by      BIGINT          DEFAULT NULL             COMMENT '更新人 ID',
-    deleted         TINYINT(1)      NOT NULL DEFAULT 0       COMMENT '逻辑删除：0=未删除，1=已删除',
-
-    -- 主键
-    PRIMARY KEY (id),
-
-    -- 唯一索引（含 deleted，逻辑删除后允许复用 username / employee_no）
-    UNIQUE INDEX uk_username_deleted (username, deleted),
-    UNIQUE INDEX uk_employee_no_deleted (employee_no, deleted),
-
-    -- 普通索引
-    INDEX idx_phone_number (phone_number),
-    INDEX idx_department_id (department_id),
-    INDEX idx_status (status),
-    INDEX idx_name (name)
-
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_general_ci
-  COMMENT='系统用户表';
-
--- ============================================================
--- 表: sys_department
--- 说明: 部门表，扁平结构，按类型（DepartmentType）分类
--- ============================================================
+-- ------------------------------------------------------------
+-- 表: sys_department —— 部门表（扁平结构，按 type 分类）
+-- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sys_department (
-    -- 基础字段
-    id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '主键 ID',
-    name            VARCHAR(64)     NOT NULL                 COMMENT '部门名称',
-    code            VARCHAR(32)     NOT NULL                 COMMENT '部门编码（创建后不可修改）',
-    type            VARCHAR(32)     NOT NULL                 COMMENT '部门类型：WAREHOUSE/TRANSPORT/SALES/PRODUCTION/OFFICE/HR/FINANCE/MANAGEMENT',
+    id          BIGSERIAL    PRIMARY KEY,
+    name        VARCHAR(64)  NOT NULL,
+    code        VARCHAR(32)  NOT NULL,
+    type        VARCHAR(32)  NOT NULL,
+    status      SMALLINT     NOT NULL DEFAULT 1,
+    sort        INTEGER      NOT NULL DEFAULT 0,
+    remark      VARCHAR(500),
+    created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by  BIGINT,
+    updated_by  BIGINT,
+    deleted     SMALLINT     NOT NULL DEFAULT 0,
+    CONSTRAINT uk_dept_name_deleted UNIQUE (name, deleted),
+    CONSTRAINT uk_dept_code_deleted UNIQUE (code, deleted)
+);
 
-    -- 业务字段
-    status          TINYINT         NOT NULL DEFAULT 1       COMMENT '状态：0=禁用，1=启用',
-    sort            INT             NOT NULL DEFAULT 0       COMMENT '显示排序（升序，越小越靠前）',
-    remark          VARCHAR(500)    DEFAULT NULL             COMMENT '备注',
+CREATE INDEX IF NOT EXISTS idx_dept_type   ON sys_department (type);
+CREATE INDEX IF NOT EXISTS idx_dept_status ON sys_department (status);
 
-    -- 审计字段
-    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP          COMMENT '创建时间',
-    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    created_by      BIGINT          DEFAULT NULL             COMMENT '创建人 ID',
-    updated_by      BIGINT          DEFAULT NULL             COMMENT '更新人 ID',
-    deleted         TINYINT(1)      NOT NULL DEFAULT 0       COMMENT '逻辑删除：0=未删除，1=已删除',
+COMMENT ON TABLE  sys_department         IS '部门表';
+COMMENT ON COLUMN sys_department.type    IS '部门类型：WAREHOUSE/TRANSPORT/SALES/PRODUCTION/OFFICE/HR/FINANCE/MANAGEMENT';
+COMMENT ON COLUMN sys_department.status  IS '状态：0=禁用，1=启用';
+COMMENT ON COLUMN sys_department.deleted IS '逻辑删除：0=未删除，1=已删除';
 
-    -- 主键
-    PRIMARY KEY (id),
-
-    -- 唯一索引（含 deleted，逻辑删除后允许复用 name / code）
-    UNIQUE INDEX uk_name_deleted (name, deleted),
-    UNIQUE INDEX uk_code_deleted (code, deleted),
-
-    -- 普通索引
-    INDEX idx_type (type),
-    INDEX idx_status (status)
-
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_general_ci
-  COMMENT='部门表';
-
--- 初始化部门数据（8 类：7 个业务部门 + 管理层）；INSERT IGNORE 保证基线/全新库执行均不重复、不报错
-INSERT IGNORE INTO sys_department (name, code, type, status, sort, remark) VALUES
-    ('仓储管理部', 'WH',    'WAREHOUSE',  1, 1, '负责仓库收发存管理'),
-    ('运输部',     'TRANS', 'TRANSPORT',  1, 2, '负责物流配送与运输'),
-    ('销售部',     'SALES', 'SALES',      1, 3, '负责销售与客户管理'),
-    ('生产部',     'PROD',  'PRODUCTION', 1, 4, '负责生产制造'),
-    ('行政办公室', 'OFFICE','OFFICE',     1, 5, '负责行政与综合办公'),
-    ('人事部',     'HR',    'HR',         1, 6, '负责人力资源管理'),
-    ('财务部',     'FIN',   'FINANCE',    1, 7, '负责财务与会计'),
-    ('管理层',     'MGMT',  'MANAGEMENT', 1, 8, '老板 / 高层管理');
+-- 初始化部门数据（8 类：7 个业务部门 + 管理层）；ON CONFLICT DO NOTHING 保证可重复执行
+INSERT INTO sys_department (name, code, type, status, sort, remark) VALUES
+    ('仓储管理部', 'WH',     'WAREHOUSE',  1, 1, '负责仓库收发存管理'),
+    ('运输部',     'TRANS',  'TRANSPORT',  1, 2, '负责物流配送与运输'),
+    ('销售部',     'SALES',  'SALES',      1, 3, '负责销售与客户管理'),
+    ('生产部',     'PROD',   'PRODUCTION', 1, 4, '负责生产制造'),
+    ('行政办公室', 'OFFICE', 'OFFICE',     1, 5, '负责行政与综合办公'),
+    ('人事部',     'HR',     'HR',         1, 6, '负责人力资源管理'),
+    ('财务部',     'FIN',    'FINANCE',    1, 7, '负责财务与会计'),
+    ('管理层',     'MGMT',   'MANAGEMENT', 1, 8, '老板 / 高层管理')
+ON CONFLICT DO NOTHING;
