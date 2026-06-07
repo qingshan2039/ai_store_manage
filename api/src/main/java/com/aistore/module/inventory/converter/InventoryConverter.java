@@ -38,9 +38,9 @@ public class InventoryConverter {
                 .build();
     }
 
-    public InventorySummaryItemVO toSummaryItemVO(Inventory e, String skuName, String lpnCode, String locationCode) {
+    public InventorySummaryItemVO toSummaryItemVO(Inventory e, String skuName, String lpnCode, String palletTypeName, String locationCode) {
         return InventorySummaryItemVO.builder()
-                .id(e.getId()).skuId(e.getSkuId()).skuName(skuName).lpnCode(lpnCode).locationCode(locationCode)
+                .id(e.getId()).skuId(e.getSkuId()).skuName(skuName).lpnCode(lpnCode).palletTypeName(palletTypeName).locationCode(locationCode)
                 .lotNo(e.getLotNo()).qtyOnHand(e.getQtyOnHand()).qtyReserved(e.getQtyReserved()).qtyAvailable(available(e))
                 .createdAt(e.getCreatedAt())
                 .build();

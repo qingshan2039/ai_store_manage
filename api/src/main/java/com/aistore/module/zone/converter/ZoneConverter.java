@@ -42,6 +42,7 @@ public class ZoneConverter {
     }
 
     public void updateEntity(Zone e, UpdateZoneRequest r) {
+        if (r.getCode() != null) e.setCode(r.getCode());
         if (r.getName() != null) e.setName(r.getName());
         if (r.getType() != null) e.setType(r.getType());
         if (r.getRemark() != null) e.setRemark(r.getRemark());

@@ -18,6 +18,7 @@ public class InventorySummaryItemVO {
     private Long skuId;
     private String skuName;
     private String lpnCode;
+    private String palletTypeName;
     private String locationCode;
     private String lotNo;
     private BigDecimal qtyOnHand;

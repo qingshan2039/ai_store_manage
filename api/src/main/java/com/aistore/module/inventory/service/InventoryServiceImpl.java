@@ -16,6 +16,8 @@ import com.aistore.module.location.entity.Location;
 import com.aistore.module.location.mapper.LocationMapper;
 import com.aistore.module.lpn.entity.Lpn;
 import com.aistore.module.lpn.mapper.LpnMapper;
+import com.aistore.module.pallet.entity.PalletType;
+import com.aistore.module.pallet.mapper.PalletTypeMapper;
 import com.aistore.module.packaginglevel.entity.PackagingLevel;
 import com.aistore.module.packaginglevel.mapper.PackagingLevelMapper;
 import com.aistore.module.packagingrelation.entity.PackagingRelation;
@@ -47,6 +49,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryMapper inventoryMapper;
     private final SkuMapper skuMapper;
     private final LpnMapper lpnMapper;
+    private final PalletTypeMapper palletTypeMapper;
     private final LocationMapper locationMapper;
     private final PackagingLevelMapper levelMapper;
     private final PackagingRelationMapper relationMapper;
@@ -84,12 +87,15 @@ public class InventoryServiceImpl implements InventoryService {
 
         List<Inventory> records = result.getRecords();
         Map<Long, String> skuNames = skuNames(records.stream().map(Inventory::getSkuId).distinct().toList());
-        Map<Long, String> lpnCodes = lpnCodes(records.stream().map(Inventory::getLpnId).filter(Objects::nonNull).distinct().toList());
+        List<Long> lpnIds = records.stream().map(Inventory::getLpnId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, String> lpnCodes = lpnCodes(lpnIds);
+        Map<Long, String> lpnPalletTypes = lpnPalletTypeNames(lpnIds);
         Map<Long, String> locCodes = locationCodes(records.stream().map(Inventory::getLocationId).filter(Objects::nonNull).distinct().toList());
 
         List<InventorySummaryItemVO> items = records.stream()
                 .map(r -> inventoryConverter.toSummaryItemVO(r, skuNames.get(r.getSkuId()),
                         r.getLpnId() != null ? lpnCodes.get(r.getLpnId()) : null,
+                        r.getLpnId() != null ? lpnPalletTypes.get(r.getLpnId()) : null,
                         r.getLocationId() != null ? locCodes.get(r.getLocationId()) : null))
                 .toList();
         int totalPages = (int) Math.ceil((double) result.getTotal() / pageSize);
@@ -219,6 +225,18 @@ public class InventoryServiceImpl implements InventoryService {
     private Map<Long, String> lpnCodes(List<Long> ids) {
         if (ids.isEmpty()) return Map.of();
         return lpnMapper.selectBatchIds(ids).stream().collect(Collectors.toMap(Lpn::getId, Lpn::getLpnCode));
+    }
+
+    /** lpnId → 托盘类型名（经 LPN.palletTypeId → PalletType.name）。 */
+    private Map<Long, String> lpnPalletTypeNames(List<Long> lpnIds) {
+        if (lpnIds.isEmpty()) return Map.of();
+        List<Lpn> lpns = lpnMapper.selectBatchIds(lpnIds);
+        List<Long> ptIds = lpns.stream().map(Lpn::getPalletTypeId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, String> ptNames = ptIds.isEmpty() ? Map.of()
+                : palletTypeMapper.selectBatchIds(ptIds).stream().collect(Collectors.toMap(PalletType::getId, PalletType::getName));
+        return lpns.stream()
+                .filter(l -> l.getPalletTypeId() != null && ptNames.containsKey(l.getPalletTypeId()))
+                .collect(Collectors.toMap(Lpn::getId, l -> ptNames.get(l.getPalletTypeId())));
     }
 
     private Map<Long, String> locationCodes(List<Long> ids) {

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,5 +92,18 @@ class LocationControllerTest extends AbstractPostgresTest {
         int id = JsonPath.read(body, "$.id");
         mockMvc.perform(delete("/api/locations/" + id)).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/locations/" + id)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void update_changesCodeAndType() throws Exception {
+        int whId = createWarehouse("WH-L5", "库位测试仓E");
+        String body = mockMvc.perform(post("/api/locations").contentType(MediaType.APPLICATION_JSON)
+                        .content(utf8("{\"warehouseId\":" + whId + ",\"code\":\"C-01-01\",\"locType\":\"货架\"}")))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        int id = JsonPath.read(body, "$.id");
+        mockMvc.perform(put("/api/locations/" + id).contentType(MediaType.APPLICATION_JSON).content(utf8("{\"code\":\"C-01-02\",\"locType\":\"地堆\"}")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("C-01-02"))
+                .andExpect(jsonPath("$.locType").value("地堆"));
     }
 }

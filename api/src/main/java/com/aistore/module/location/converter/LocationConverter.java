@@ -40,6 +40,7 @@ public class LocationConverter {
     }
 
     public void updateEntity(Location e, UpdateLocationRequest r) {
+        if (r.getCode() != null) e.setCode(r.getCode());
         if (r.getZoneId() != null) e.setZoneId(r.getZoneId());
         if (r.getLocType() != null) e.setLocType(r.getLocType());
     }

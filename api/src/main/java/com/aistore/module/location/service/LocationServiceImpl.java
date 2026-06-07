@@ -94,6 +94,14 @@ public class LocationServiceImpl implements LocationService {
         if (request.getZoneId() != null && zoneMapper.selectById(request.getZoneId()) == null) {
             throw ResourceNotFoundException.zoneNotFound();
         }
+        // 编码可改：同一仓库内唯一
+        if (request.getCode() != null && !request.getCode().equals(entity.getCode())
+                && locationMapper.selectCount(new LambdaQueryWrapper<Location>()
+                .eq(Location::getWarehouseId, entity.getWarehouseId())
+                .eq(Location::getCode, request.getCode())
+                .ne(Location::getId, id)) > 0) {
+            throw DuplicateResourceException.duplicateLocationCode();
+        }
         locationConverter.updateEntity(entity, request);
         locationMapper.updateById(entity);
         return getLocationById(id);

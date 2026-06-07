@@ -119,4 +119,18 @@ class InventoryControllerTest extends AbstractPostgresTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("SKU_NOT_FOUND"));
     }
+
+    /** 库存查询返回托盘名称(lpnCode) + 托盘类型(palletTypeName)。 */
+    @Test
+    void list_returnsLpnCodeAndPalletTypeName() throws Exception {
+        int skuId = createSku("L");
+        int wh = post201("/api/warehouses", "{\"code\":\"WH-INVL\",\"name\":\"库存列表仓\",\"type\":\"FINISHED\"}");
+        int pt = post201("/api/pallet-types", "{\"code\":\"PT-INVL\",\"name\":\"列表测试托\",\"length\":1200,\"width\":1000}");
+        int lpn = post201("/api/lpns", "{\"lpnCode\":\"SSCC-INVL-1\",\"palletTypeId\":" + pt + ",\"warehouseId\":" + wh + "}");
+        post201("/api/inventory", "{\"skuId\":" + skuId + ",\"lpnId\":" + lpn + ",\"qtyOnHand\":100}");
+        mockMvc.perform(get("/api/inventory").param("skuId", String.valueOf(skuId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].lpnCode").value("SSCC-INVL-1"))
+                .andExpect(jsonPath("$.items[0].palletTypeName").value("列表测试托"));
+    }
 }
