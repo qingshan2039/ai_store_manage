@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.vscode
+.claude
+.codegraph
+.agents
+.m2-local
+**/target
+**/node_modules
+**/dist
+**/.env.local
+**/*.log
+docs
+api-contract
+data
+logs

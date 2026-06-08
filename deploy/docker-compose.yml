@@ -1,0 +1,93 @@
+name: ai-store-manage
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: asm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: Asia/Shanghai
+    volumes:
+      - /opt/ai-store-manage/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asm-net
+    # 不暴露端口到宿主机，只在容器网络内可达。表结构由后端 Flyway（V1…V8）启动时自动迁移，无需 init.sql。
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile.api
+    image: ai-store-manage/api:latest
+    container_name: asm-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Spring Boot relaxed binding：覆盖 application.yml 中的 datasource（容器内连 postgres:5432）
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      # 兼容 application.yml 已有的占位
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # 上传图片落盘目录（与下方卷一致；应用据此存储并经 /api/files/** 提供访问）
+      APP_UPLOAD_DIR: /app/uploads
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx1024m"
+    volumes:
+      - /opt/ai-store-manage/logs:/app/logs
+      - /opt/ai-store-manage/data/uploads:/app/uploads
+    networks:
+      - asm-net
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile.web
+    image: ai-store-manage/web:latest
+    container_name: asm-web
+    restart: unless-stopped
+    networks:
+      - asm-net
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: asm-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/ai-store-manage/data/certbot/conf:/etc/letsencrypt:ro
+      - /opt/ai-store-manage/data/certbot/www:/var/www/certbot:ro
+    depends_on:
+      - api
+      - web
+    networks:
+      - asm-net
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: asm-certbot
+    restart: unless-stopped
+    volumes:
+      - /opt/ai-store-manage/data/certbot/conf:/etc/letsencrypt
+      - /opt/ai-store-manage/data/certbot/www:/var/www/certbot
+    # 启动后每 12 小时尝试一次 renew；首次签发用一次性命令（见第 8 节）
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - asm-net
+
+networks:
+  asm-net:
+    driver: bridge
