@@ -571,8 +571,10 @@ curl http://yourdomain.com/api/users
 ```bash
 cd /opt/ai-store-manage/app/deploy
 
+# ⚠️ 必须加 --entrypoint certbot：compose 里 certbot 服务的 entrypoint 是「每 12h renew」的死循环，
+#    不覆盖它的话，certonly 参数会被当垃圾忽略、容器空跑卡住，证书永远签不出来（日志还是空的）。
 # 第一次用 --staging 试一下，避免触发 LE 速率限制
-docker compose run --rm certbot certonly \
+docker compose run --rm --entrypoint certbot certbot certonly \
   --webroot --webroot-path=/var/www/certbot \
   --email "$(grep CERTBOT_EMAIL .env | cut -d= -f2)" \
   --agree-tos --no-eff-email \
@@ -584,7 +586,7 @@ sudo rm -rf /opt/ai-store-manage/data/certbot/conf/live/yourdomain.com
 sudo rm -rf /opt/ai-store-manage/data/certbot/conf/archive/yourdomain.com
 sudo rm -f /opt/ai-store-manage/data/certbot/conf/renewal/yourdomain.com.conf
 
-docker compose run --rm certbot certonly \
+docker compose run --rm --entrypoint certbot certbot certonly \
   --webroot --webroot-path=/var/www/certbot \
   --email "$(grep CERTBOT_EMAIL .env | cut -d= -f2)" \
   --agree-tos --no-eff-email \

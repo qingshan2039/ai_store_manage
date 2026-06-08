@@ -85,10 +85,15 @@ jobs:
           # CI 临时登录 GHCR 拉私有镜像（GITHUB_TOKEN 随 job 失效）
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           cd /opt/ai-store-manage/app
-          git pull --ff-only
+          # 与仓库强一致（VPS 不应有本地改动；.env 等 untracked 文件不受影响）
+          git fetch origin --quiet
+          git reset --hard origin/main
           cd deploy
           docker compose -f docker-compose.prod.yml --env-file .env pull
           docker compose -f docker-compose.prod.yml --env-file .env up -d
+          # nginx 配置是挂载文件，up 不会自动重载；显式 reload（失败则重启）
+          docker compose -f docker-compose.prod.yml --env-file .env exec -T nginx nginx -s reload \
+            || docker compose -f docker-compose.prod.yml --env-file .env restart nginx
           docker logout ghcr.io
           docker image prune -f
           echo "--- 容器状态 ---"
